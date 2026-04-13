@@ -1,0 +1,310 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { Icon } from "astro-icon/components";
+---
+
+<Layout title="Minha Conta | Lado Cristao">
+    <div class="bg-white min-h-screen pb-20">
+        <div class="max-w-2xl mx-auto px-6 py-10 md:py-16">
+            <!-- Header -->
+            <div class="mb-10 text-center">
+                <h1 class="text-3xl font-black text-slate-950 uppercase tracking-tighter">Minha Conta</h1>
+                <p class="text-slate-500 text-sm mt-2">Consulte seus pedidos e acompanhe suas entregas</p>
+            </div>
+
+            <!-- Login Form -->
+            <div id="login-section">
+                <div class="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-sm">
+                    <h2 class="text-sm font-black uppercase tracking-widest text-slate-800 mb-6">Identificação</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-1.5">E-mail *</label>
+                            <input
+                                type="email"
+                                id="field-email"
+                                placeholder="seu@email.com"
+                                autocomplete="email"
+                                class="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50 text-sm focus:border-slate-800 focus:bg-white outline-none transition-all"
+                            />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-1.5">CPF *</label>
+                            <input
+                                type="text"
+                                id="field-cpf"
+                                placeholder="000.000.000-00"
+                                maxlength="14"
+                                class="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50 text-sm focus:border-slate-800 focus:bg-white outline-none transition-all"
+                            />
+                        </div>
+                        <p id="login-error" class="text-xs text-red-500 hidden"></p>
+                        <button
+                            id="btn-login"
+                            class="w-full bg-slate-950 text-white py-3.5 font-black uppercase tracking-widest text-xs rounded-xl hover:bg-slate-800 transition-colors flex items-center justify-center gap-2"
+                        >
+                            <Icon name="lucide:search" class="w-4 h-4" />
+                            Consultar Pedidos
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders Section (hidden until login) -->
+            <div id="orders-section" class="hidden">
+                <!-- User bar -->
+                <div class="flex items-center justify-between mb-6 py-3 border-b border-slate-100">
+                    <div>
+                        <p class="text-xs text-slate-400 uppercase tracking-widest font-bold">Pedidos de</p>
+                        <p id="user-email" class="text-sm font-bold text-slate-800"></p>
+                    </div>
+                    <button id="btn-logout" class="text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-slate-800 transition-colors">
+                        Sair
+                    </button>
+                </div>
+
+                <!-- Loading -->
+                <div id="orders-loading" class="text-center py-12 text-slate-400">Carregando pedidos...</div>
+
+                <!-- Empty -->
+                <div id="orders-empty" class="hidden text-center py-16">
+                    <Icon name="lucide:package" class="w-12 h-12 text-slate-200 mx-auto mb-4" />
+                    <p class="text-slate-400 font-medium">Nenhum pedido encontrado</p>
+                    <p class="text-xs text-slate-300 mt-1">Verifique se o e-mail e CPF estão corretos</p>
+                    <a href="/quadros" class="inline-block mt-6 px-6 py-3 bg-slate-950 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-slate-800 transition-colors">
+                        Ver Quadros
+                    </a>
+                </div>
+
+                <!-- Orders list -->
+                <div id="orders-list" class="hidden space-y-4"></div>
+            </div>
+        </div>
+    </div>
+</Layout>
+
+<script>
+    import { esc } from "../lib/escapeHtml";
+
+    const API = window.location.hostname === "localhost"
+        ? "http://localhost:4000/api"
+        : "https://api.ladocristao.com.br/api";
+
+    const STATUS_MAP: Record<string, { label: string; color: string }> = {
+        pending: { label: "Pendente", color: "bg-yellow-100 text-yellow-700" },
+        processing: { label: "Em Preparação", color: "bg-blue-100 text-blue-700" },
+        shipped: { label: "Enviado", color: "bg-purple-100 text-purple-700" },
+        delivered: { label: "Entregue", color: "bg-green-100 text-green-700" },
+        cancelled: { label: "Cancelado", color: "bg-red-100 text-red-700" },
+        paid: { label: "Pago", color: "bg-green-100 text-green-700" },
+        failed: { label: "Falhou", color: "bg-red-100 text-red-700" },
+    };
+
+    const PAYMENT_MAP: Record<string, string> = {
+        credit_card: "Cartão de Crédito",
+        pix: "PIX",
+        paypal: "PayPal",
+    };
+
+    function formatPrice(cents: number): string {
+        return (cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    }
+
+    function formatDate(dateStr: string): string {
+        if (!dateStr) return "---";
+        return new Date(dateStr).toLocaleDateString("pt-BR", {
+            day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit"
+        });
+    }
+
+    function maskCPF(value: string): string {
+        return value.replace(/\D/g, '')
+            .replace(/(\d{3})(\d)/, '$1.$2')
+            .replace(/(\d{3})(\d)/, '$1.$2')
+            .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    }
+
+    // CPF mask
+    const cpfInput = document.getElementById("field-cpf") as HTMLInputElement;
+    cpfInput?.addEventListener("input", () => { cpfInput.value = maskCPF(cpfInput.value); });
+
+    // Login
+    const btnLogin = document.getElementById("btn-login");
+    const loginSection = document.getElementById("login-section")!;
+    const ordersSection = document.getElementById("orders-section")!;
+    const loginError = document.getElementById("login-error")!;
+
+    btnLogin?.addEventListener("click", async () => {
+        const email = (document.getElementById("field-email") as HTMLInputElement)?.value?.trim().toLowerCase();
+        const cpf = (document.getElementById("field-cpf") as HTMLInputElement)?.value?.replace(/\D/g, "");
+
+        if (!email || !email.includes("@")) {
+            loginError.textContent = "Informe um e-mail válido";
+            loginError.classList.remove("hidden");
+            return;
+        }
+        if (!cpf || cpf.length !== 11) {
+            loginError.textContent = "CPF deve conter 11 dígitos";
+            loginError.classList.remove("hidden");
+            return;
+        }
+
+        loginError.classList.add("hidden");
+        (btnLogin as HTMLButtonElement).disabled = true;
+        (btnLogin as HTMLButtonElement).textContent = "Consultando...";
+
+        try {
+            const res = await fetch(`${API}/store/orders?action=my-orders&email=${encodeURIComponent(email)}&cpf=${cpf}`);
+            const data = await res.json();
+
+            if (data.error) throw new Error(data.error);
+
+            // Show orders section
+            loginSection.classList.add("hidden");
+            ordersSection.classList.remove("hidden");
+            document.getElementById("user-email")!.textContent = email;
+
+            const orders = data.orders || [];
+            const loadingEl = document.getElementById("orders-loading")!;
+            const emptyEl = document.getElementById("orders-empty")!;
+            const listEl = document.getElementById("orders-list")!;
+
+            loadingEl.classList.add("hidden");
+
+            if (orders.length === 0) {
+                emptyEl.classList.remove("hidden");
+            } else {
+                listEl.classList.remove("hidden");
+                listEl.innerHTML = orders.map((order: any) => renderOrder(order)).join("");
+            }
+
+            // Save for session
+            sessionStorage.setItem("tess_account", JSON.stringify({ email, cpf }));
+
+        } catch (err: any) {
+            loginError.textContent = err.message || "Erro ao consultar. Tente novamente.";
+            loginError.classList.remove("hidden");
+        }
+
+        (btnLogin as HTMLButtonElement).disabled = false;
+        (btnLogin as HTMLButtonElement).innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> Consultar Pedidos';
+    });
+
+    // Logout
+    document.getElementById("btn-logout")?.addEventListener("click", () => {
+        sessionStorage.removeItem("tess_account");
+        loginSection.classList.remove("hidden");
+        ordersSection.classList.add("hidden");
+    });
+
+    // Render order card
+    function renderOrder(order: any): string {
+        const status = STATUS_MAP[order.status] || { label: order.status, color: "bg-slate-100 text-slate-600" };
+        const paymentStatus = STATUS_MAP[order.payment_status] || { label: order.payment_status || "---", color: "bg-slate-100 text-slate-600" };
+        const payment = PAYMENT_MAP[order.payment_method] || order.payment_method || "---";
+        const items = Array.isArray(order.items) ? order.items : [];
+
+        const trackingHtml = order.tracking_number
+            ? `<div class="mt-3 p-3 bg-purple-50 border border-purple-100 rounded-lg">
+                <p class="text-[10px] font-black uppercase tracking-widest text-purple-600 mb-1">Rastreamento</p>
+                <p class="text-sm font-bold text-purple-800">${esc(order.tracking_number)}</p>
+                ${order.tracking?.carrier ? `<p class="text-xs text-purple-500">${esc(order.tracking.carrier)}</p>` : ""}
+                ${order.tracking_url
+                    ? `<a href="${esc(order.tracking_url)}" target="_blank" rel="noopener" class="inline-block mt-2 text-xs font-bold text-purple-700 underline underline-offset-2">Rastrear Encomenda →</a>`
+                    : `<a href="https://www.imile.com/BR-pt/track?waybillNo=${encodeURIComponent(order.tracking_number)}" target="_blank" rel="noopener" class="inline-block mt-2 text-xs font-bold text-purple-700 underline underline-offset-2">Rastrear Encomenda →</a>`
+                }
+              </div>`
+            : "";
+
+        const fulfillmentStatus = order.tracking?.status
+            ? `<span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">${esc(order.tracking.status.replace(/_/g, " "))}</span>`
+            : "";
+
+        return `
+            <div class="border border-slate-200 rounded-2xl overflow-hidden">
+                <!-- Header -->
+                <div class="bg-slate-50 px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-100">
+                    <div>
+                        <p class="text-xs text-slate-400 font-bold uppercase tracking-widest">Pedido</p>
+                        <p class="text-lg font-black text-slate-900">#${esc(order.display_id || order.id?.slice(-8))}</p>
+                    </div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${status.color}">${status.label}</span>
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${paymentStatus.color}">${paymentStatus.label}</span>
+                        ${fulfillmentStatus}
+                    </div>
+                </div>
+
+                <div class="px-5 py-4 space-y-4">
+                    <!-- Items -->
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Itens</p>
+                        <div class="space-y-2">
+                            ${items.map((item: any) => `
+                                <div class="flex items-center justify-between text-sm">
+                                    <div class="flex items-center gap-3">
+                                        ${item.image ? `<img src="${esc(item.image)}" class="w-10 h-10 rounded-lg object-cover bg-slate-100" alt="" />` : ""}
+                                        <div>
+                                            <p class="font-bold text-slate-800 text-xs">${esc(item.title || item.name || "Quadro")}</p>
+                                            <p class="text-[10px] text-slate-400">Qtd: ${item.quantity || 1}</p>
+                                        </div>
+                                    </div>
+                                    <p class="font-bold text-slate-700 text-xs">${formatPrice((item.unit_price || item.price || 0) * (item.quantity || 1))}</p>
+                                </div>
+                            `).join("")}
+                        </div>
+                    </div>
+
+                    <!-- Totais -->
+                    <div class="border-t border-slate-100 pt-3 space-y-1">
+                        <div class="flex justify-between text-xs text-slate-500">
+                            <span>Subtotal</span>
+                            <span>${formatPrice(order.subtotal || 0)}</span>
+                        </div>
+                        <div class="flex justify-between text-xs text-slate-500">
+                            <span>Frete</span>
+                            <span>${order.shipping_cost ? formatPrice(order.shipping_cost) : "Grátis"}</span>
+                        </div>
+                        ${order.discount_amount ? `<div class="flex justify-between text-xs text-green-600"><span>Desconto</span><span>-${formatPrice(order.discount_amount)}</span></div>` : ""}
+                        <div class="flex justify-between text-sm font-black text-slate-900 pt-1">
+                            <span>Total</span>
+                            <span>${formatPrice(order.total || 0)}</span>
+                        </div>
+                    </div>
+
+                    <!-- Info -->
+                    <div class="grid grid-cols-2 gap-3 border-t border-slate-100 pt-3">
+                        <div>
+                            <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Pagamento</p>
+                            <p class="text-xs font-bold text-slate-700">${esc(payment)}</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Data</p>
+                            <p class="text-xs font-bold text-slate-700">${formatDate(order.created_at)}</p>
+                        </div>
+                        ${order.shipping_city ? `
+                        <div class="col-span-2">
+                            <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Entrega</p>
+                            <p class="text-xs font-bold text-slate-700">${esc(order.shipping_city)}/${esc(order.shipping_state)}</p>
+                        </div>` : ""}
+                    </div>
+
+                    <!-- Tracking -->
+                    ${trackingHtml}
+
+                    ${order.coupon_code ? `<p class="text-[10px] text-slate-400">Cupom: <span class="font-bold">${esc(order.coupon_code)}</span></p>` : ""}
+                </div>
+            </div>
+        `;
+    }
+
+    // Auto-login from session
+    const saved = sessionStorage.getItem("tess_account");
+    if (saved) {
+        try {
+            const { email, cpf } = JSON.parse(saved);
+            (document.getElementById("field-email") as HTMLInputElement).value = email;
+            (document.getElementById("field-cpf") as HTMLInputElement).value = maskCPF(cpf);
+            btnLogin?.click();
+        } catch {}
+    }
+</script>

@@ -1,0 +1,246 @@
+---
+import "../styles/global.css";
+import CheckoutForm from "../components/checkout/CheckoutForm.astro";
+import CheckoutSummary from "../components/checkout/CheckoutSummary.astro";
+import CheckoutTicket from "../components/checkout/CheckoutTicket.astro";
+import ToasterComponent from "../components/ui/ToasterComponent";
+import { Icon } from "astro-icon/components";
+import TrackingScripts from "../components/tracking/TrackingScripts.astro";
+---
+
+<!doctype html>
+<html lang="pt-BR" data-theme="light">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <title>Checkout | Lado Cristao</title>
+        <TrackingScripts />
+    </head>
+    <body class="bg-slate-50 min-h-screen">
+        <!-- Minimal Header -->
+        <header class="bg-white border-b border-slate-100 sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+                <a href="/">
+                    <img src="/logo.png" alt="Lado Cristao" class="h-12 md:h-14 w-auto" width="150" height="60" />
+                </a>
+                <div class="flex items-center gap-2 text-slate-500">
+                    <Icon name="lucide:lock" class="w-4 h-4 text-slate-400 shrink-0" />
+                    <div class="text-left">
+                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-700 leading-none">Pagamento</p>
+                        <p class="text-[9px] font-bold uppercase tracking-widest text-slate-400 leading-none mt-0.5">100% Seguro</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Urgency Timer -->
+        <div id="urgency-bar" class="bg-amber-50 border-b border-amber-100">
+            <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-center gap-2 text-sm">
+                <Icon name="lucide:clock" class="w-4 h-4 text-amber-600" />
+                <span class="text-amber-800 font-semibold">
+                    Reservamos seus itens por <span id="countdown-timer" class="font-black text-amber-900">15:00</span> min
+                </span>
+            </div>
+        </div>
+
+        <!-- Step Indicators -->
+        <div class="bg-white border-b border-slate-100">
+            <div class="max-w-7xl mx-auto px-4 py-4">
+                <div class="flex items-center justify-center gap-2 md:gap-4">
+                    <button data-goto-step="1" class="step-indicator flex items-center gap-2 cursor-pointer group" data-step="1">
+                        <div class="step-circle w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-all bg-primary text-white">
+                            1
+                        </div>
+                        <span class="hidden md:inline text-xs font-bold uppercase tracking-widest text-slate-950 group-hover:text-primary transition-colors">Identificacao</span>
+                    </button>
+                    <div class="w-8 md:w-16 h-px bg-slate-200"></div>
+                    <button data-goto-step="2" class="step-indicator flex items-center gap-2 cursor-pointer group" data-step="2">
+                        <div class="step-circle w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-all bg-slate-200 text-slate-400">
+                            2
+                        </div>
+                        <span class="hidden md:inline text-xs font-bold uppercase tracking-widest text-slate-400 group-hover:text-primary transition-colors">Entrega</span>
+                    </button>
+                    <div class="w-8 md:w-16 h-px bg-slate-200"></div>
+                    <button data-goto-step="3" class="step-indicator flex items-center gap-2 cursor-pointer group" data-step="3">
+                        <div class="step-circle w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-all bg-slate-200 text-slate-400">
+                            3
+                        </div>
+                        <span class="hidden md:inline text-xs font-bold uppercase tracking-widest text-slate-400 group-hover:text-primary transition-colors">Pagamento</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="max-w-7xl mx-auto px-4 py-8">
+            <div class="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8 items-start">
+                <!-- Left: Form -->
+                <CheckoutForm />
+
+                <!-- Right: Summary (desktop) -->
+                <div class="hidden lg:block">
+                    <CheckoutSummary />
+                </div>
+            </div>
+        </div>
+
+        <CheckoutTicket />
+        <ToasterComponent client:load />
+
+        <!-- Checkout Footer -->
+        <footer class="border-t border-slate-100 bg-white mt-8 py-6">
+            <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
+                <p class="text-xs text-slate-400 font-medium text-center md:text-left">
+                    Lado Cristao &mdash; Quadros Decorativos Premium &middot; ladocristao.com.br
+                </p>
+            </div>
+        </footer>
+    </body>
+</html>
+
+<style is:global>
+    html, body {
+        margin: 0;
+    }
+</style>
+
+<script>
+    import { cartItems, totalPrice, totalSavings, completePurchase, isPromoActive } from "../store/cartStore";
+
+    function initCheckoutPage() {
+    if (!document.getElementById("countdown-timer")) {
+        setTimeout(initCheckoutPage, 100);
+        return;
+    }
+
+    // ── Countdown Timer ──
+    let timeLeft = 15 * 60;
+    const timerEl = document.getElementById("countdown-timer");
+    const urgencyBar = document.getElementById("urgency-bar");
+
+    const timerInterval = setInterval(() => {
+        timeLeft--;
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            if (timerEl) timerEl.textContent = "00:00";
+            if (urgencyBar) {
+                urgencyBar.classList.remove("bg-amber-50", "border-amber-100");
+                urgencyBar.classList.add("bg-red-50", "border-red-100");
+                urgencyBar.querySelector("span")!.innerHTML = `
+                    <span class="text-red-800 font-semibold">Tempo esgotado! Seus itens podem nao estar mais reservados.</span>
+                `;
+            }
+            return;
+        }
+        const min = Math.floor(timeLeft / 60).toString().padStart(2, "0");
+        const sec = (timeLeft % 60).toString().padStart(2, "0");
+        if (timerEl) timerEl.textContent = `${min}:${sec}`;
+    }, 1000);
+
+    // ── Step Navigation ──
+    const stepButtons = document.querySelectorAll("[data-goto-step]");
+    const stepIndicators = document.querySelectorAll(".step-indicator");
+
+    function updateStepIndicators(activeStep: number) {
+        stepIndicators.forEach((ind) => {
+            const step = parseInt(ind.getAttribute("data-step") || "1");
+            const circle = ind.querySelector(".step-circle") as HTMLElement;
+            const label = ind.querySelector("span") as HTMLElement;
+
+            if (step <= activeStep) {
+                circle.classList.remove("bg-slate-200", "text-slate-400");
+                circle.classList.add("bg-primary", "text-white");
+                if (label) {
+                    label.classList.remove("text-slate-400");
+                    label.classList.add("text-slate-950");
+                }
+            } else {
+                circle.classList.remove("bg-primary", "text-white");
+                circle.classList.add("bg-slate-200", "text-slate-400");
+                if (label) {
+                    label.classList.remove("text-slate-950");
+                    label.classList.add("text-slate-400");
+                }
+            }
+        });
+    }
+
+    // Listen for step changes from the form
+    document.addEventListener("checkout:step-changed", ((e: CustomEvent) => {
+        updateStepIndicators(e.detail.step);
+    }) as EventListener);
+
+    // Click step indicators to navigate
+    stepButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const step = parseInt(btn.getAttribute("data-goto-step") || "1");
+            document.dispatchEvent(new CustomEvent("checkout:goto-step", { detail: { step } }));
+        });
+    });
+
+    const formatPrice = (price: number) =>
+        new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(price);
+
+    // ── Purchase Handler ──
+    const ticketModal = document.getElementById("ticket-modal");
+    const ticketProducts = document.getElementById("ticket-products");
+    const ticketTotal = document.getElementById("ticket-total");
+    const ticketCustomer = document.getElementById("ticket-customer");
+    const ticketDate = document.getElementById("ticket-date");
+    const ticketId = document.getElementById("ticket-id");
+
+    document.addEventListener("checkout:complete", ((e: CustomEvent) => {
+        const { name } = e.detail;
+        const currentItems = cartItems.get();
+        const currentTotal = totalPrice.get();
+
+        if (currentItems.length === 0) {
+            alert("Seu carrinho esta vazio!");
+            return;
+        }
+
+        // Populate ticket
+        const PROMO_PRICE = 75;
+        const promo = isPromoActive(currentItems);
+        if (ticketProducts) {
+            ticketProducts.innerHTML = currentItems
+                .map((item) => {
+                    const unitPrice = promo ? PROMO_PRICE : item.price * (1 - (item.discount || 0) / 100);
+                    return `
+                    <div class="flex justify-between items-center text-sm">
+                        <div class="flex flex-col">
+                            <span class="font-black text-slate-950 uppercase italic text-xs tracking-tight">${item.name}</span>
+                            <span class="text-[10px] font-bold text-slate-400">QTD: ${item.quantity}</span>
+                        </div>
+                        <span class="font-black italic text-slate-900">${formatPrice(unitPrice * item.quantity)}</span>
+                    </div>
+                `;
+                })
+                .join("");
+        }
+
+        if (ticketTotal) ticketTotal.textContent = formatPrice(currentTotal);
+        if (ticketCustomer) ticketCustomer.textContent = name;
+        if (ticketDate)
+            ticketDate.textContent = new Date().toLocaleDateString("pt-BR", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+            });
+        if (ticketId)
+            ticketId.textContent = e.detail.displayId || "TRX-" + Math.random().toString(36).substring(2, 11).toUpperCase();
+
+        completePurchase();
+        ticketModal?.classList.add("open");
+        clearInterval(timerInterval);
+    }) as EventListener);
+
+    } // fim initCheckoutPage
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initCheckoutPage, { once: true });
+    } else {
+        setTimeout(initCheckoutPage, 0);
+    }
+</script>

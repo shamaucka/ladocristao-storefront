@@ -1,0 +1,44 @@
+---
+import Layout from "../layouts/Layout.astro";
+import FormContact from "../components/contact/FormContact.astro";
+import ContactInfo from "../components/contact/ContactInfo.astro";
+import SocialFollow from "../components/contact/SocialFollow.astro";
+---
+
+<Layout>
+    <section class="max-w-7xl mx-auto px-4 py-16 lg:py-24">
+        <!-- Centered Title -->
+        <h2
+            class="text-3xl md:text-5xl font-black text-center uppercase tracking-tighter mb-16"
+        >
+            Fale <span class="text-primary">Conosco</span>
+        </h2>
+
+        <!-- Main Container -->
+        <div class="flex flex-col lg:flex-row items-start gap-12 lg:gap-20">
+            <!-- Left Side: Text & Contact Info -->
+            <div class="w-full lg:w-4/12 flex flex-col justify-center">
+                <div class="prose prose-lg mb-10">
+                    <p
+                        class="text-xl md:text-2xl font-medium text-base-content leading-relaxed"
+                    >
+                        Envie uma mensagem e retornaremos em breve.
+                        Nossa equipe esta pronta para oferecer consultoria
+                        personalizada e te ajudar em cada etapa.
+                    </p>
+                </div>
+
+                <!-- Contact Details -->
+                <ContactInfo />
+
+                <!-- Social Icons -->
+                <SocialFollow />
+            </div>
+
+            <!-- Right Side: Form -->
+            <div class="w-full lg:w-8/12">
+                <FormContact />
+            </div>
+        </div>
+    </section>
+</Layout>

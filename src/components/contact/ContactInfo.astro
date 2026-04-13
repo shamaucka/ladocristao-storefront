@@ -1,0 +1,44 @@
+---
+import { Icon } from "astro-icon/components";
+
+const contactDetails = [
+    {
+        icon: "lucide:map-pin",
+        title: "Visite-nos",
+        lines: ["Rua das Artes, 123 - Sao Paulo, SP"],
+    },
+    {
+        icon: "lucide:phone",
+        title: "Ligue para Nos",
+        lines: ["(11) 99999-9999"],
+    },
+    {
+        icon: "lucide:mail",
+        title: "Envie um E-mail",
+        lines: ["contato@sualoja.com.br"],
+    },
+];
+---
+
+<div class="space-y-6 mb-10">
+    {
+        contactDetails.map((item) => (
+            <div class="flex items-start gap-4">
+                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                    <Icon name={item.icon} class="w-5 h-5" />
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg">{item.title}</h3>
+                    <p class="text-base-content/70">
+                        {item.lines.map((line, index) => (
+                            <>
+                                {line}
+                                {index < item.lines.length - 1 && <br />}
+                            </>
+                        ))}
+                    </p>
+                </div>
+            </div>
+        ))
+    }
+</div>

@@ -1,0 +1,44 @@
+---
+import AboutCard from "./AboutCard.astro";
+
+const values = [
+    {
+        title: "Qualidade Premium",
+        description:
+            "Trabalhamos apenas com materiais de alta qualidade, garantindo impressao em alta definicao e acabamento impecavel em cada quadro.",
+        icon: "lucide:award",
+    },
+    {
+        title: "Envio para Todo Brasil",
+        description:
+            "Logistica de ponta para garantir que seus quadros cheguem com seguranca e rapidez em qualquer lugar do Brasil.",
+        icon: "lucide:truck",
+    },
+    {
+        title: "Atendimento Especializado",
+        description:
+            "Nossa equipe de especialistas em decoracao esta disponivel para ajudar voce a encontrar o quadro perfeito para seu ambiente.",
+        icon: "lucide:headset",
+    },
+];
+---
+
+<section class="py-20 bg-slate-50 px-4">
+    <div class="max-w-7xl mx-auto">
+        <div class="text-center max-w-2xl mx-auto mb-16">
+            <span
+                class="text-primary font-bold uppercase tracking-widest text-sm mb-4 block"
+                >Nossos Valores</span
+            >
+            <h2
+                class="text-3xl md:text-5xl font-black text-slate-900 uppercase"
+            >
+                O Que Nos Motiva
+            </h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {values.map((value) => <AboutCard {...value} />)}
+        </div>
+    </div>
+</section>

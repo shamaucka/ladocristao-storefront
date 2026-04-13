@@ -1,0 +1,31 @@
+{
+  "name": "e-commer-astro",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/react": "^4.4.2",
+    "@iconify-json/lucide": "^1.2.86",
+    "@iconify-json/mdi": "^1.2.3",
+    "@nanostores/persistent": "^1.2.0",
+    "@nanostores/react": "^1.0.0",
+    "@tailwindcss/vite": "^4.1.18",
+    "@types/react": "^19.2.8",
+    "@types/react-dom": "^19.2.3",
+    "astro": "^5.16.11",
+    "astro-icon": "^1.1.5",
+    "nanostores": "^1.1.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "sonner": "^2.0.7",
+    "tailwindcss": "^4.1.18"
+  },
+  "devDependencies": {
+    "daisyui": "^5.5.14"
+  }
+}

@@ -1,0 +1,172 @@
+---
+interface Props {
+    reviews: any[];
+    totalReviews: number;
+    stats: { avg_rating: number; count: number; distribution: Record<string, number> };
+}
+
+const { reviews = [], totalReviews = 0, stats = { avg_rating: 4.9, count: 0, distribution: {} } } = Astro.props;
+
+const avgRating = stats?.avg_rating || 0;
+const totalPages = Math.ceil(totalReviews / 5);
+
+function renderStars(rating: number): string {
+    return "★".repeat(rating) + "☆".repeat(5 - rating);
+}
+
+function timeAgo(dateStr: string): string {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const days = Math.floor(diff / 86400000);
+    if (days < 1) return "hoje";
+    if (days < 30) return `${days}d atras`;
+    if (days < 365) return `${Math.floor(days / 30)}m atras`;
+    return `${Math.floor(days / 365)}a atras`;
+}
+---
+
+<!-- TODAS AS REVIEWS -->
+<section class="mt-4 md:mt-10 border-t border-slate-100 pt-6 md:pt-10" id="reviews-section">
+    <div class="flex flex-col md:flex-row gap-10 mb-12">
+        <!-- Stats Summary -->
+        <div class="md:w-1/3">
+            <div class="sticky top-24">
+                <h2 class="text-2xl font-black text-slate-950 uppercase tracking-tight mb-4">
+                    Avaliacoes
+                </h2>
+                <div class="flex items-baseline gap-3 mb-2">
+                    <span class="text-5xl font-black text-slate-950">{avgRating}</span>
+                    <div>
+                        <div class="text-slate-900 text-xl tracking-wider">{renderStars(Math.round(Number(avgRating)))}</div>
+                        <p class="text-sm text-slate-500">{totalReviews} avaliacoes</p>
+                    </div>
+                </div>
+                <div class="space-y-1.5 mt-4">
+                    {[5, 4, 3, 2, 1].map((star) => {
+                        const count = stats.distribution?.[star] || 0;
+                        const pct = totalReviews > 0 ? (count / totalReviews * 100) : 0;
+                        return (
+                            <div class="flex items-center gap-2 text-sm">
+                                <span class="w-3 text-slate-600 font-medium">{star}</span>
+                                <span class="text-slate-800 text-xs">★</span>
+                                <div class="flex-1 bg-slate-100 rounded-full h-2 overflow-hidden">
+                                    <div class="bg-slate-900 h-full rounded-full transition-all" style={`width:${pct}%`}></div>
+                                </div>
+                                <span class="w-8 text-xs text-slate-400 text-right">{count}</span>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        </div>
+
+        <!-- Reviews List -->
+        <div class="md:w-2/3">
+            <div id="reviews-list" class="space-y-6">
+                {reviews.map((review: any) => (
+                    <div class="border-b border-slate-50 pb-6 review-item">
+                        <div class="flex items-start justify-between mb-2">
+                            <div>
+                                <div class="text-slate-900 text-sm tracking-wider">{renderStars(review.rating)}</div>
+                                <h4 class="font-bold text-slate-900 mt-1">{review.title || "Otimo produto"}</h4>
+                            </div>
+                            <span class="text-xs text-slate-400">{timeAgo(review.created_at)}</span>
+                        </div>
+                        <p class="text-sm text-slate-600 leading-relaxed">{review.comment}</p>
+                        <div class="flex items-center gap-2 mt-3 text-xs text-slate-400">
+                            <span class="font-medium text-slate-500">{review.customer_name}</span>
+                            {review.city && <span>• {review.city}/{review.state}</span>}
+                            {review.verified_purchase && <span class="text-slate-700 font-medium">✓ Compra verificada</span>}
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            <!-- Paginação -->
+            {totalPages > 1 && (
+                <div id="reviews-pagination" class="mt-10 flex items-center justify-center gap-4">
+                    <span id="reviews-loading" class="hidden text-sm text-slate-400 italic">Carregando...</span>
+                </div>
+            )}
+        </div>
+    </div>
+</section>
+
+<script define:vars={{ totalPages, apiUrl: "https://api.ladocristao.com.br/api" }}>
+    let currentPage = 1;
+    const list = document.getElementById("reviews-list");
+    const paginationDiv = document.getElementById("reviews-pagination");
+    const loadingEl = document.getElementById("reviews-loading");
+
+    function esc(s) { if (!s) return ""; return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
+    function renderStars(r) { return "★".repeat(r) + "☆".repeat(5 - r); }
+    function timeAgo(d) {
+        const days = Math.floor((Date.now() - new Date(d).getTime()) / 86400000);
+        if (days < 1) return "hoje";
+        if (days < 30) return days + "d atras";
+        if (days < 365) return Math.floor(days / 30) + "m atras";
+        return Math.floor(days / 365) + "a atras";
+    }
+
+    function renderReview(r) {
+        return `<div class="border-b border-slate-50 pb-6 review-item">
+            <div class="flex items-start justify-between mb-2">
+                <div>
+                    <div class="text-slate-900 text-sm tracking-wider">${renderStars(r.rating)}</div>
+                    <h4 class="font-bold text-slate-900 mt-1">${esc(r.title) || "Otimo produto"}</h4>
+                </div>
+                <span class="text-xs text-slate-400">${timeAgo(r.created_at)}</span>
+            </div>
+            <p class="text-sm text-slate-600 leading-relaxed">${esc(r.comment)}</p>
+            <div class="flex items-center gap-2 mt-3 text-xs text-slate-400">
+                <span class="font-medium text-slate-500">${esc(r.customer_name)}</span>
+                ${r.city ? `<span>• ${esc(r.city)}/${esc(r.state)}</span>` : ""}
+                ${r.verified_purchase ? '<span class="text-slate-700 font-semibold">✓ Compra verificada</span>' : ""}
+            </div>
+        </div>`;
+    }
+
+    async function loadPage(page) {
+        if (page === currentPage && page !== 1) return;
+        loadingEl?.classList.remove("hidden");
+
+        try {
+            const res = await fetch(`${apiUrl}/store/reviews?all=true&limit=5&page=${page}`);
+            const data = await res.json();
+            const reviews = data.reviews?.reviews || data.reviews || [];
+
+            if (list && reviews.length > 0) {
+                list.innerHTML = reviews.map(renderReview).join("");
+                currentPage = page;
+                buildPagination();
+                document.getElementById("reviews-list")?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+        } catch (e) {
+            console.error("Error loading reviews page:", e);
+        }
+
+        loadingEl?.classList.add("hidden");
+    }
+
+    function buildPagination() {
+        if (!paginationDiv || totalPages <= 1) return;
+        const hasPrev = currentPage > 1;
+        const hasNext = currentPage < totalPages;
+        const btnClass = "px-5 py-2.5 text-xs font-bold uppercase tracking-widest border transition-colors duration-200";
+        const activeClass = "border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white cursor-pointer";
+        const disabledClass = "border-slate-100 text-slate-300 cursor-not-allowed pointer-events-none";
+        paginationDiv.innerHTML = `
+            <button data-page="${currentPage - 1}" class="rpag ${btnClass} ${hasPrev ? activeClass : disabledClass}" ${hasPrev ? "" : "disabled"}>← Anterior</button>
+            <span class="text-xs font-medium text-slate-500 px-4 min-w-[80px] text-center">${currentPage} / ${totalPages}</span>
+            <button data-page="${currentPage + 1}" class="rpag ${btnClass} ${hasNext ? activeClass : disabledClass}" ${hasNext ? "" : "disabled"}>Próximo →</button>
+        `;
+        paginationDiv.querySelectorAll(".rpag").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const page = parseInt(btn.getAttribute("data-page"));
+                if (page && !btn.disabled) loadPage(page);
+            });
+        });
+    }
+
+    // Build initial pagination
+    buildPagination();
+</script>

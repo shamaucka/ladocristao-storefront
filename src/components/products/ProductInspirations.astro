@@ -1,0 +1,190 @@
+---
+const CDN = "https://cdn.ladocristao.com.br"
+
+// UGC photos via CDN com auto-compress e resize (f_auto,q_auto,w_500)
+const ugcTransform = `${CDN}/image/upload/f_auto,q_auto,w_500`
+const customerPhotos = [
+    { src: `${ugcTransform}/tess/ugc/foto1.jpg`, name: "Carmen M.", room: "Sala de estar", city: "São Paulo, SP" },
+    { src: `${ugcTransform}/tess/ugc/foto2.jpg`, name: "Brooke S.", room: "Quarto", city: "Belo Horizonte, MG" },
+    { src: `${ugcTransform}/tess/ugc/foto3.jpg`, name: "Nancy Y.", room: "Sala de jantar", city: "Curitiba, PR" },
+    { src: `${ugcTransform}/tess/ugc/foto4.jpg`, name: "Natalie E.", room: "Estúdio", city: "Porto Alegre, RS" },
+    { src: `${ugcTransform}/tess/ugc/foto5.jpg`, name: "Donna P.", room: "Espaço rústico", city: "Florianópolis, SC" },
+    { src: `${ugcTransform}/tess/ugc/foto6.jpg`, name: "Christina S.", room: "Aparador", city: "Campinas, SP" },
+    { src: `${ugcTransform}/tess/ugc/foto7.jpg`, name: "Anthony M.", room: "Lareira", city: "Brasília, DF" },
+]
+
+// Poster: Cloudinary gera thumbnail do frame 1s do video
+const posterTransform = `${CDN}/video/upload/so_1,f_jpg,q_auto,w_300,h_533,c_fill`
+const videoTransform = `${CDN}/video/upload/q_auto`
+const videos = [
+    { src: `${videoTransform}/tess/videos/inspire-1.mp4`, poster: `${posterTransform}/tess/videos/inspire-1.jpg`, label: "Sala de estar" },
+    { src: `${videoTransform}/tess/videos/inspire-2.mp4`, poster: `${posterTransform}/tess/videos/inspire-2.jpg`, label: "Quarto" },
+    { src: `${videoTransform}/tess/videos/inspire-3.mp4`, poster: `${posterTransform}/tess/videos/inspire-3.jpg`, label: "Sala de jantar" },
+    { src: `${videoTransform}/tess/videos/inspire-4.mp4`, poster: `${posterTransform}/tess/videos/inspire-4.jpg`, label: "Escritório" },
+]
+---
+
+<!-- ============================================================ -->
+<!-- SEÇÃO 1: Quadros que nossas clientes amaram e nos enviaram    -->
+<!-- ============================================================ -->
+<section class="mt-24 border-t border-slate-100 pt-16" id="clientes-section">
+    <div class="mb-10">
+        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Galeria de Clientes</p>
+        <h2 class="text-3xl font-black text-slate-950 uppercase tracking-tighter leading-none">
+            Quadros que nossas clientes<br class="hidden md:block"/> amaram e nos enviaram
+        </h2>
+    </div>
+
+    <!-- Linha 1: 3 fotos -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-3">
+        {customerPhotos.slice(0, 3).map((photo) => (
+            <div class="group overflow-hidden bg-slate-50 relative">
+                <div class="aspect-square overflow-hidden">
+                    <img
+                        src={photo.src}
+                        alt={`Quadro na casa de ${photo.name} — ${photo.room}`}
+                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        loading="lazy"
+                        decoding="async"
+                    />
+                </div>
+                <div class="p-2.5 border-t border-slate-100">
+                    <p class="text-[11px] font-bold text-slate-700">{photo.name}</p>
+                    <p class="text-[10px] text-slate-400">{photo.room} · {photo.city}</p>
+                </div>
+                <div class="absolute top-2 left-2 bg-white/90 backdrop-blur-sm px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-slate-600 border border-slate-200">
+                    @ladocristao
+                </div>
+            </div>
+        ))}
+    </div>
+
+    <!-- Linha 2: 4 fotos menores -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {customerPhotos.slice(3).map((photo) => (
+            <div class="group overflow-hidden bg-slate-50 relative">
+                <div class="aspect-square overflow-hidden">
+                    <img
+                        src={photo.src}
+                        alt={`Quadro na casa de ${photo.name} — ${photo.room}`}
+                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        loading="lazy"
+                        decoding="async"
+                    />
+                </div>
+                <div class="p-2 border-t border-slate-100">
+                    <p class="text-[10px] font-bold text-slate-700">{photo.name}</p>
+                    <p class="text-[9px] text-slate-400">{photo.room}</p>
+                </div>
+                <div class="absolute top-2 left-2 bg-white/90 backdrop-blur-sm px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-slate-600 border border-slate-200">
+                    @ladocristao
+                </div>
+            </div>
+        ))}
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SEÇÃO 2: Inspire-se com nossas clientes (carrossel 9:16)     -->
+<!-- ============================================================ -->
+<section class="mt-24 border-t border-slate-100 pt-16" id="inspire-section">
+    <div class="mb-10">
+        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Inspiração</p>
+        <h2 class="text-3xl font-black text-slate-950 uppercase tracking-tighter leading-none">
+            Inspire-se com<br class="hidden md:block"/> nossas clientes
+        </h2>
+    </div>
+
+    <!-- Carrossel horizontal — arrasta no mobile, scroll no desktop -->
+    <div
+        class="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 scrollbar-hide"
+        id="video-carousel"
+        style="-webkit-overflow-scrolling: touch;"
+    >
+        {videos.map((v) => (
+            <div
+                class="flex-none snap-start relative overflow-hidden bg-slate-950 group cursor-pointer"
+                style="width: 260px; aspect-ratio: 9/16;"
+                data-video-container
+            >
+                <video
+                    muted
+                    loop
+                    playsinline
+                    preload="none"
+                    poster={v.poster}
+                    class="w-full h-full object-cover"
+                    data-hover-video
+                    data-src={v.src}
+                />
+                <!-- Overlay -->
+                <div class="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors duration-300 flex items-end p-4 pointer-events-none">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-white/80">{v.label}</span>
+                </div>
+                <!-- Play icon -->
+                <div class="absolute inset-0 flex items-center justify-center pointer-events-none transition-opacity duration-200" data-play-icon>
+                    <div class="w-12 h-12 rounded-full bg-white/70 backdrop-blur-sm flex items-center justify-center">
+                        <svg class="w-5 h-5 text-slate-800 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        ))}
+    </div>
+</section>
+
+<style is:global>
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
+
+<script>
+    function initVideoCarousel() {
+        // Lazy load: só carrega o vídeo quando visível
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    const video = entry.target as HTMLVideoElement;
+                    const src = video.getAttribute("data-src");
+                    if (src && !video.src) {
+                        video.src = src;
+                    }
+                    observer.unobserve(video);
+                }
+            });
+        }, { rootMargin: "200px" });
+
+        document.querySelectorAll<HTMLVideoElement>("[data-hover-video]").forEach((v) => {
+            observer.observe(v);
+        });
+
+        // Hover/touch play
+        document.querySelectorAll("[data-video-container]").forEach((container) => {
+            const video = container.querySelector("video") as HTMLVideoElement;
+            const playIcon = container.querySelector("[data-play-icon]") as HTMLElement;
+            if (!video) return;
+
+            const play = () => {
+                if (!video.src) {
+                    const src = video.getAttribute("data-src");
+                    if (src) video.src = src;
+                }
+                video.play().catch(() => {});
+                if (playIcon) playIcon.style.opacity = "0";
+            };
+            const pause = () => {
+                video.pause();
+                video.currentTime = 0;
+                if (playIcon) playIcon.style.opacity = "1";
+            };
+
+            container.addEventListener("mouseenter", play);
+            container.addEventListener("mouseleave", pause);
+            container.addEventListener("touchstart", play, { passive: true });
+            container.addEventListener("touchend", pause);
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", initVideoCarousel);
+</script>

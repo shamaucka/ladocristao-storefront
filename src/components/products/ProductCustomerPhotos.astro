@@ -1,0 +1,68 @@
+---
+const CDN = "https://cdn.ladocristao.com.br"
+const ugcTransform = `${CDN}/image/upload/f_auto,q_auto,w_500`
+const customerPhotos = [
+    { src: `${ugcTransform}/tess/ugc/foto1.jpg`, name: "Carmen M.", room: "Sala de estar", city: "São Paulo, SP" },
+    { src: `${ugcTransform}/tess/ugc/foto2.jpg`, name: "Brooke S.", room: "Quarto", city: "Belo Horizonte, MG" },
+    { src: `${ugcTransform}/tess/ugc/foto3.jpg`, name: "Nancy Y.", room: "Sala de jantar", city: "Curitiba, PR" },
+    { src: `${ugcTransform}/tess/ugc/foto4.jpg`, name: "Natalie E.", room: "Estúdio", city: "Porto Alegre, RS" },
+    { src: `${ugcTransform}/tess/ugc/foto5.jpg`, name: "Donna P.", room: "Espaço rústico", city: "Florianópolis, SC" },
+    { src: `${ugcTransform}/tess/ugc/foto6.jpg`, name: "Christina S.", room: "Aparador", city: "Campinas, SP" },
+    { src: `${ugcTransform}/tess/ugc/foto7.jpg`, name: "Anthony M.", room: "Lareira", city: "Brasília, DF" },
+]
+---
+
+<section class="mt-16 border-t border-slate-100 pt-12" id="clientes-section">
+    <div class="mb-8">
+        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Galeria de Clientes</p>
+        <h2 class="text-3xl font-black text-slate-950 uppercase tracking-tighter leading-none">
+            Quadros que nossas clientes<br class="hidden md:block"/> amaram e nos enviaram
+        </h2>
+    </div>
+
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-3">
+        {customerPhotos.slice(0, 3).map((photo) => (
+            <div class="group overflow-hidden bg-slate-50 relative">
+                <div class="aspect-square overflow-hidden">
+                    <img
+                        src={photo.src}
+                        alt={`Quadro na casa de ${photo.name} — ${photo.room}`}
+                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        loading="lazy"
+                        decoding="async"
+                    />
+                </div>
+                <div class="p-2.5 border-t border-slate-100">
+                    <p class="text-[11px] font-bold text-slate-700">{photo.name}</p>
+                    <p class="text-[10px] text-slate-400">{photo.room} · {photo.city}</p>
+                </div>
+                <div class="absolute top-2 left-2 bg-white/90 backdrop-blur-sm px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-slate-600 border border-slate-200">
+                    @ladocristao
+                </div>
+            </div>
+        ))}
+    </div>
+
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {customerPhotos.slice(3).map((photo) => (
+            <div class="group overflow-hidden bg-slate-50 relative">
+                <div class="aspect-square overflow-hidden">
+                    <img
+                        src={photo.src}
+                        alt={`Quadro na casa de ${photo.name} — ${photo.room}`}
+                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        loading="lazy"
+                        decoding="async"
+                    />
+                </div>
+                <div class="p-2 border-t border-slate-100">
+                    <p class="text-[10px] font-bold text-slate-700">{photo.name}</p>
+                    <p class="text-[9px] text-slate-400">{photo.room}</p>
+                </div>
+                <div class="absolute top-2 left-2 bg-white/90 backdrop-blur-sm px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-slate-600 border border-slate-200">
+                    @ladocristao
+                </div>
+            </div>
+        ))}
+    </div>
+</section>

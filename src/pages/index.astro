@@ -1,0 +1,281 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Hero from "../components/home/Hero.astro";
+import CardProduct from "../components/products/CardProduct.astro";
+import { fetchProducts, fetchHomeLayout, fetchCategories } from "../lib/api";
+import { products as staticProducts } from "../data/products";
+
+// Busca produtos da API, fallback para dados estaticos
+const apiProducts = await fetchProducts(500);
+const products = apiProducts || staticProducts;
+
+// Busca layout dinamico do painel
+const layout = await fetchHomeLayout();
+const sections = layout?.sections || [];
+const hasDynamicLayout = sections.length > 0;
+
+// Busca categorias para filtrar vitrines por category_id
+const categories = await fetchCategories() || [];
+
+// Vitrines fallback
+const maisVendidos = products.slice(0, 8);
+const novidades = [...products].reverse().slice(0, 12);
+
+// Compute LCP image URL for preload in <head>
+let lcpImage: string | undefined;
+if (hasDynamicLayout && sections.length > 0 && sections[0].type === "banner") {
+    const s = sections[0];
+    const imgDesktop = s.image_desktop || s.image_url || "";
+    if (imgDesktop) {
+        lcpImage = imgDesktop.includes("cloudinary")
+            ? imgDesktop.replace("/image/upload/", "/image/upload/f_auto,q_50,w_400/")
+            : imgDesktop;
+    }
+} else {
+    // Fallback hero image
+    lcpImage = "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?q=80&w=1200&auto=format&fit=crop";
+}
+---
+
+<Layout lcpImage={lcpImage}>
+    {hasDynamicLayout ? (
+        sections.map((section: any, i: number) => {
+            if (section.type === "banner") {
+                const imgDesktop = section.image_desktop || section.image_url || "";
+                const imgMobile = section.image_mobile || imgDesktop;
+                const link = section.link || section.link_url || "";
+                return (
+                    <section class="relative w-full overflow-hidden" style="min-height:400px">
+                        {imgDesktop && (
+                            <img
+                                src={imgDesktop.includes("cloudinary") ? imgDesktop.replace("/image/upload/", "/image/upload/f_auto,q_60,w_800/") : imgDesktop}
+                                srcset={imgDesktop.includes("cloudinary") ? `${imgDesktop.replace("/image/upload/", "/image/upload/f_auto,q_50,w_400/")} 400w, ${imgDesktop.replace("/image/upload/", "/image/upload/f_auto,q_60,w_800/")} 800w, ${imgDesktop.replace("/image/upload/", "/image/upload/f_auto,q_auto,w_1200/")} 1200w` : undefined}
+                                sizes="100vw"
+                                alt={section.alt || section.title || "Banner"}
+                                class="absolute inset-0 w-full h-full object-cover"
+                                loading={i === 0 ? "eager" : "lazy"}
+                                fetchpriority={i === 0 ? "high" : "auto"}
+                                width="1200" height="500"
+                                decoding={i === 0 ? "sync" : "async"}
+                            />
+                        )}
+                        {link && (
+                            <a href={link} class="absolute inset-0 z-10" aria-label={section.alt || "Ver mais"}></a>
+                        )}
+                    </section>
+                )
+            }
+
+            if (section.type === "video_banner") {
+                const vidDesktop = section.video_desktop || "";
+                const vidMobile = section.video_mobile || vidDesktop;
+                const rawPosterDesktop = section.poster_desktop || "";
+                const rawPosterMobile = section.poster_mobile || rawPosterDesktop;
+                const link = section.link || "";
+
+                // Força .mp4 para compatibilidade mobile (Cloudinary transcodifica automaticamente)
+                const toMp4 = (url: string) => url.replace(/\.(mov|webm|avi|mkv)$/i, ".mp4");
+
+                // CDN auto-compress
+                const addTransform = (url: string, w: number) => {
+                    if (!url || !url.includes("cdn.ladocristao.com.br")) return url;
+                    const mp4Url = toMp4(url);
+                    if (mp4Url.includes("/video/upload/q_auto")) return mp4Url;
+                    return mp4Url.replace("/video/upload/", `/video/upload/q_auto,w_${w}/`);
+                };
+
+                // Valida poster: ignora URLs que não são imagens (ex: homepage URL)
+                const isValidPoster = (url: string) => url && (url.includes("cloudinary") || url.includes("cdn.ladocristao") || url.match(/\.(jpg|jpeg|png|webp|avif)$/i));
+                const posterDesktop = isValidPoster(rawPosterDesktop) ? rawPosterDesktop : undefined;
+                const posterMobile = isValidPoster(rawPosterMobile) ? rawPosterMobile : undefined;
+
+                return (
+                    <section class="relative w-full overflow-hidden bg-slate-950" data-video-section>
+                        {/* Desktop video */}
+                        <video
+                            class="hidden md:block w-full h-auto"
+                            muted
+                            autoplay
+                            loop
+                            playsinline
+                            preload="metadata"
+                            poster={posterDesktop}
+                            data-autoplay-src={addTransform(vidDesktop, 1280)}
+                        />
+                        {/* Mobile video */}
+                        <video
+                            class="md:hidden w-full h-auto"
+                            muted
+                            autoplay
+                            loop
+                            playsinline
+                            preload="metadata"
+                            poster={posterMobile}
+                            data-autoplay-src={addTransform(vidMobile, 640)}
+                        />
+                        {link && (
+                            <a href={link} class="absolute inset-0 z-10" aria-label={section.alt || "Ver mais"}></a>
+                        )}
+                    </section>
+                )
+            }
+
+            if (section.type === "vitrine") {
+                const catId = section.category_id || section.category;
+                let filtered = products;
+                if (catId) {
+                    const cat = categories.find((c: any) => c.id === catId);
+                    const catSlug = cat?.handle || cat?.slug;
+                    filtered = products.filter((p: any) =>
+                        p.category === catId ||
+                        p.category === catSlug ||
+                        (catSlug && p.slug?.includes(catSlug))
+                    );
+                }
+
+                // Sort
+                if (section.sort_by === "menor-preco") {
+                    filtered = [...filtered].sort((a: any, b: any) => a.price - b.price);
+                } else if (section.sort_by === "maior-preco") {
+                    filtered = [...filtered].sort((a: any, b: any) => b.price - a.price);
+                } else if (section.sort_by === "recentes") {
+                    filtered = [...filtered].reverse();
+                }
+
+                const items = filtered.slice(0, Math.min(section.limit || 8, 12));
+
+                return (
+                    <section class={`py-16 md:py-20 ${i % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>
+                        <div class="max-w-7xl mx-auto px-6">
+                            <div class="flex items-end justify-between mb-10">
+                                <div>
+                                    <h2 class="text-3xl md:text-4xl font-black text-slate-950 uppercase tracking-tighter italic">
+                                        {section.title || "Produtos"}
+                                    </h2>
+                                </div>
+                                <a href="/quadros" class="text-sm font-bold uppercase tracking-widest text-slate-950 hover:underline underline-offset-4">
+                                    Ver Todos &rarr;
+                                </a>
+                            </div>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
+                                {items.map((product: any) => (
+                                    <CardProduct
+                                        title={product.name}
+                                        price={product.price}
+                                        images={product.images}
+                                        stock={product.stock}
+                                        slug={product.slug}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    </section>
+                )
+            }
+
+            return null;
+        })
+    ) : (
+        <Fragment>
+            <Hero />
+
+            <section class="bg-white py-16 md:py-20">
+                <div class="max-w-7xl mx-auto px-6">
+                    <div class="flex items-end justify-between mb-10">
+                        <div>
+                            <p class="text-xs font-bold uppercase tracking-[0.3em] text-slate-400 mb-2">Destaques</p>
+                            <h2 class="text-3xl md:text-4xl font-black text-slate-950 uppercase tracking-tighter italic">
+                                Mais Vendidos
+                            </h2>
+                        </div>
+                        <a href="/quadros" class="text-sm font-bold uppercase tracking-widest text-slate-950 hover:underline underline-offset-4">
+                            Ver Todos &rarr;
+                        </a>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
+                        {maisVendidos.map((product) => (
+                            <CardProduct
+                                title={product.name}
+                                price={product.price}
+                                images={product.images}
+                                stock={product.stock}
+                                slug={product.slug}
+                            />
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-black text-white">
+                <div class="max-w-7xl mx-auto px-6 py-10 md:py-14 text-center">
+                    <h2 class="text-2xl md:text-4xl font-black uppercase tracking-tight">
+                        Compre 2 Quadros por R$ 150 + Frete Gratis
+                    </h2>
+                    <p class="text-sm text-white/50 mt-3 uppercase tracking-widest">
+                        Valido enquanto durarem os estoques
+                    </p>
+                    <a href="/quadros" class="inline-block mt-6 btn btn-outline border-white text-white hover:bg-white hover:text-black rounded-full px-8">
+                        Aproveitar
+                    </a>
+                </div>
+            </section>
+
+            <section class="bg-slate-50 py-16 md:py-20">
+                <div class="max-w-7xl mx-auto px-6">
+                    <div class="flex items-end justify-between mb-10">
+                        <div>
+                            <p class="text-xs font-bold uppercase tracking-[0.3em] text-slate-400 mb-2">Recentes</p>
+                            <h2 class="text-3xl md:text-4xl font-black text-slate-950 uppercase tracking-tighter italic">
+                                Novidades
+                            </h2>
+                        </div>
+                        <a href="/quadros" class="text-sm font-bold uppercase tracking-widest text-slate-950 hover:underline underline-offset-4">
+                            Ver Todos &rarr;
+                        </a>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
+                        {novidades.map((product) => (
+                            <CardProduct
+                                title={product.name}
+                                price={product.price}
+                                images={product.images}
+                                stock={product.stock}
+                                slug={product.slug}
+                            />
+                        ))}
+                    </div>
+                </div>
+            </section>
+        </Fragment>
+    )}
+</Layout>
+
+<script>
+    // Autoplay para video_banner sections na home
+    document.querySelectorAll<HTMLVideoElement>("[data-autoplay-src]").forEach((video) => {
+        const src = video.getAttribute("data-autoplay-src") || "";
+        if (!src) return;
+
+        // Carrega o src imediatamente (o video já tem preload="metadata")
+        video.src = src;
+
+        // Autoplay quando visível, pause quando sai
+        const observer = new IntersectionObserver(([entry]) => {
+            if (entry.isIntersecting) {
+                video.play().catch(() => {});
+            } else {
+                video.pause();
+            }
+        }, { threshold: 0.1 });
+        observer.observe(video);
+
+        // Fallback: tenta autoplay em qualquer evento de interação (iOS Safari)
+        const tryPlay = () => {
+            video.play().catch(() => {});
+            document.removeEventListener("touchstart", tryPlay);
+            document.removeEventListener("scroll", tryPlay);
+        };
+        document.addEventListener("touchstart", tryPlay, { once: true, passive: true });
+        document.addEventListener("scroll", tryPlay, { once: true, passive: true });
+    });
+</script>

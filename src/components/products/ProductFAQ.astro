@@ -1,0 +1,71 @@
+---
+const faqs = [
+    {
+        q: "O quadro já vem pronto para pendurar?",
+        a: "Sim! Todos os nossos quadros chegam com o dispositivo de fixação já instalado no verso. Basta escolher o ponto na parede e pendurar — não é necessário nenhuma ferramenta extra.",
+    },
+    {
+        q: "Qual o prazo de entrega?",
+        a: "O prazo varia entre 7 e 15 dias úteis dependendo da sua região. Assim que seu pedido for despachado, você recebe o código de rastreio por e-mail para acompanhar em tempo real.",
+    },
+    {
+        q: "As cores são fiéis ao que vejo no site?",
+        a: "Fazemos a calibração de cores com rigor para garantir máxima fidelidade. Pequenas variações podem ocorrer dependendo da calibração do seu monitor, mas a impressão é sempre fiel à arte original.",
+    },
+    {
+        q: "O canvas é resistente? Vai desbotando com o tempo?",
+        a: "Usamos tintas pigmentadas UV-resistentes de alta durabilidade. Com cuidados básicos — ambiente sem umidade excessiva e longe de luz solar direta — seu quadro manterá as cores por muitos anos.",
+    },
+    {
+        q: "Posso devolver ou trocar se não gostar?",
+        a: "Sim, com toda a tranquilidade. Você tem 60 dias após o recebimento para solicitar troca ou devolução. Entre em contato com nosso suporte e resolvemos sem burocracia.",
+    },
+    {
+        q: "O quadro tem moldura?",
+        a: "Nossos quadros são no formato canvas com bastidor — não possuem moldura externa. As bordas laterais são impressas com a continuação da arte, o que dá um visual moderno e limpo, sem precisar de moldura.",
+    },
+    {
+        q: "Vocês fazem quadros em tamanhos personalizados?",
+        a: "Por enquanto trabalhamos com os tamanhos disponíveis no site. Fique atento às novidades — estamos sempre expandindo nosso catálogo.",
+    },
+    {
+        q: "Como devo limpar e conservar o quadro?",
+        a: "Passe um pano seco e macio sobre a superfície quando necessário. Evite produtos químicos, umidade e luz solar direta. Com esses cuidados simples, seu quadro durará décadas.",
+    },
+    {
+        q: "O frete é grátis?",
+        a: "Sim! Na compra de 2 ou mais quadros, o frete é grátis para todo o Brasil. Aproveite também nossa promoção: leve 2 quadros por apenas R$ 150 com frete incluso.",
+    },
+    {
+        q: "Como faço para rastrear meu pedido?",
+        a: "Assim que seu pedido for despachado, você receberá um e-mail com o código de rastreio dos Correios ou da transportadora. Você também pode acompanhar diretamente pelo site na seção 'Meu Pedido'.",
+    },
+]
+---
+
+<section class="mt-20 border-t border-slate-100 pt-16">
+    <div class="max-w-3xl mx-auto">
+        <div class="mb-10">
+            <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Dúvidas Frequentes</p>
+            <h2 class="text-3xl font-black text-slate-950 uppercase tracking-tighter">Perguntas & Respostas</h2>
+        </div>
+
+        <div class="space-y-0 divide-y divide-slate-100">
+            {faqs.map((faq, i) => (
+                <details class="group py-1">
+                    <summary class="flex items-center justify-between cursor-pointer list-none py-4 gap-4 select-none">
+                        <span class="text-sm font-bold text-slate-800 leading-snug">{faq.q}</span>
+                        <svg
+                            class="w-4 h-4 text-slate-400 flex-shrink-0 transition-transform group-open:rotate-45"
+                            fill="none" stroke="currentColor" stroke-width="2.5"
+                            viewBox="0 0 24 24"
+                        >
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M5 12h14"/>
+                        </svg>
+                    </summary>
+                    <p class="pb-5 text-sm text-slate-500 leading-relaxed pr-8">{faq.a}</p>
+                </details>
+            ))}
+        </div>
+    </div>
+</section>

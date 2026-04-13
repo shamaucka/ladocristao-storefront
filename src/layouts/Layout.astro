@@ -1,0 +1,88 @@
+---
+import "../styles/global.css";
+import Navbar from "../components/navbar/NavBar.astro";
+import AnnouncementBar from "../components/ui/AnnouncementBar.astro";
+import Footer from "../components/footer/Footer.astro";
+import ToasterComponent from "../components/ui/ToasterComponent";
+import CartDrawer from "../components/cart/CartDrawer.astro";
+import ChatbotWidget from "../components/chat/ChatbotWidget";
+import TrackingScripts from "../components/tracking/TrackingScripts.astro";
+
+interface Props {
+    title?: string;
+    lcpImage?: string;
+}
+
+const { title = "Lado Cristao | Quadros Decorativos Premium", lcpImage } = Astro.props;
+
+const AW_ID = import.meta.env.PUBLIC_GOOGLE_ADS_ID || "";
+const PURCHASE_LABEL = import.meta.env.PUBLIC_GOOGLE_ADS_PURCHASE_LABEL || "";
+---
+
+<!doctype html>
+<html lang="pt-BR" data-theme="light">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<!-- generator removed for security -->
+
+		<!-- Preconnects -->
+		<link rel="preconnect" href="https://cdn.ladocristao.com.br" crossorigin />
+		<link rel="preconnect" href="https://api.ladocristao.com.br" />
+		<link rel="dns-prefetch" href="https://cdn.ladocristao.com.br" />
+		<link rel="dns-prefetch" href="https://api.ladocristao.com.br" />
+
+		<!-- Preload critical font weight to avoid FOUT -->
+		<link rel="preload" as="font" type="font/opentype" href="/fonts/avantgarde/AvantGarde-Bold.otf" crossorigin />
+
+		<!-- LCP image preload: set dynamically from page -->
+		{lcpImage && (
+			<link rel="preload" as="image" href={lcpImage} fetchpriority="high" />
+		)}
+
+		<meta name="description" content="Quadros decorativos em canvas poliester premium com moldura de madeira de reflorestamento. Basta 1 prego na parede para instalar. Nunca desbota.. Frete gratis acima de R$299." />
+		<title>{title}</title>
+
+		<TrackingScripts />
+		{(AW_ID || PURCHASE_LABEL) && (
+			<script is:inline define:vars={{ AW_ID, PURCHASE_LABEL }}>
+			window.__GA_AW_ID = AW_ID;
+			window.__GA_PURCHASE_LABEL = PURCHASE_LABEL;
+			</script>
+		)}
+
+		<!-- Inline critical CSS for above-fold rendering -->
+		<style is:inline>
+			/* Critical layout: announcement bar + navbar + hero skeleton */
+			html, body { margin: 0; }
+			body { font-family: 'AvantGarde', 'Century Gothic', 'Futura', sans-serif; }
+			.bg-base-200 { background-color: hsl(0 0% 96%); }
+			/* Announcement bar critical */
+			#announcement-bar { background: #000; color: #fff; font-size: 0.75rem; padding: 0.625rem 0; position: relative; z-index: 50; overflow: hidden; }
+			/* Navbar critical */
+			#main-navbar { position: sticky; top: 0; z-index: 999; width: 100%; }
+			#main-navbar > .bg-base-100 { background-color: hsl(0 0% 100%); box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+			/* Hero section critical - reserve space to prevent CLS */
+			section.relative.w-full.overflow-hidden { min-height: 350px; }
+			@media (min-width: 640px) { section.relative.w-full.overflow-hidden { min-height: 450px; } }
+			@media (min-width: 768px) { section.relative.w-full.overflow-hidden { min-height: 500px; } }
+		</style>
+	</head>
+	<body class="bg-base-200 min-h-screen">
+		<AnnouncementBar />
+		<Navbar />
+		<main>
+			<slot />
+		</main>
+		<Footer />
+		<CartDrawer />
+		<ChatbotWidget client:idle />
+		<ToasterComponent client:idle />
+		<script is:inline>
+			if ('serviceWorker' in navigator) {
+				navigator.serviceWorker.register('/sw.js').catch(() => {});
+			}
+		</script>
+	</body>
+</html>

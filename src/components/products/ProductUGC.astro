@@ -1,0 +1,82 @@
+---
+// Fotos de clientes no estilo post de Instagram
+// Salve as imagens em: /public/ugc/foto1.jpg, foto2.jpg, foto3.jpg
+const posts = [
+    {
+        user: "marcelooliveira_decor",
+        avatar: "M",
+        photo: "/ugc/foto1.jpg",
+        caption: "Esse quadro transformou meu escritório! Qualidade incrível, chegou super bem embalado e pronto pra pendurar. Amei demais 🙌 @ladocristao",
+        likes: 312,
+        time: "3 dias atrás",
+    },
+    {
+        user: "casadaana.br",
+        avatar: "A",
+        photo: "/ugc/foto2.jpg",
+        caption: "Perfeito pro meu corredor! A impressão é nítida e o acabamento é de outro nível. Já pedi mais dois 🖼️ @ladocristao",
+        likes: 487,
+        time: "1 semana atrás",
+    },
+    {
+        user: "juliana.interiores",
+        avatar: "J",
+        photo: "/ugc/foto3.jpg",
+        caption: "Fiz uma galeria inteira com os quadros da @ladocristao. Qualidade que se vê e se sente. Super recomendo para quem quer transformar o ambiente! ✨",
+        likes: 624,
+        time: "2 semanas atrás",
+    },
+]
+---
+
+<section class="mt-20 border-t border-slate-100 pt-16">
+    <div class="mb-10 text-center">
+        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Clientes Reais</p>
+        <h2 class="text-3xl font-black text-slate-950 uppercase tracking-tighter">Na casa de quem amou</h2>
+        <p class="text-slate-500 text-sm mt-2">Marcou a gente? Use <strong class="text-slate-700">#ladocristao</strong> e apareça aqui.</p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {posts.map((post) => (
+            <div class="bg-white border border-slate-100 shadow-sm overflow-hidden">
+                <!-- Header estilo Instagram -->
+                <div class="flex items-center gap-3 px-4 py-3 border-b border-slate-50">
+                    <div class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-[11px] font-black text-slate-600 flex-shrink-0">
+                        {post.avatar}
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-[12px] font-bold text-slate-800 truncate leading-tight">@{post.user}</p>
+                        <p class="text-[10px] text-slate-400 leading-none">{post.time}</p>
+                    </div>
+                    <!-- Instagram logo minimalista -->
+                    <svg class="w-4 h-4 text-slate-300 ml-auto flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                        <circle cx="12" cy="12" r="4"/>
+                        <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor"/>
+                    </svg>
+                </div>
+
+                <!-- Foto -->
+                <div class="aspect-square overflow-hidden bg-slate-100">
+                    <img
+                        src={post.photo}
+                        alt={`Quadro Tess na casa de @${post.user}`}
+                        class="w-full h-full object-cover"
+                        loading="lazy"
+                    />
+                </div>
+
+                <!-- Likes + caption -->
+                <div class="px-4 pt-3 pb-4">
+                    <div class="flex items-center gap-1 mb-2">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                        </svg>
+                        <span class="text-[11px] font-bold text-slate-500">{post.likes.toLocaleString("pt-BR")} curtidas</span>
+                    </div>
+                    <p class="text-[12px] text-slate-600 leading-snug line-clamp-3">{post.caption}</p>
+                </div>
+            </div>
+        ))}
+    </div>
+</section>

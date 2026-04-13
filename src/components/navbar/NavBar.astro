@@ -1,0 +1,131 @@
+---
+import Links from "./Links.astro";
+import MobileSidebar from "./MobileSidebar.astro";
+import { Icon } from "astro-icon/components";
+---
+
+<div id="main-navbar" class="sticky top-0 z-[999] w-full transition-transform duration-300">
+    <div class="bg-white border-b border-slate-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+            <!-- Mobile: Hamburger -->
+            <div class="lg:hidden">
+                <button id="hamburger-btn" class="w-10 h-10 flex items-center justify-center text-slate-600 hover:text-slate-900 transition-colors" aria-label="Menu">
+                    <Icon name="lucide:menu" class="w-5 h-5" />
+                </button>
+            </div>
+            <!-- Logo -->
+            <div class="flex-1 lg:flex-none flex justify-center lg:justify-start">
+                <a href="/"><img src="/logo.png" alt="Lado Cristao" class="h-10 lg:h-12 w-auto" width="150" height="50" /></a>
+            </div>
+            <!-- Desktop Search -->
+            <div class="hidden lg:flex flex-1 max-w-sm mx-8">
+                <form id="desktop-search-form" action="/quadros" method="get" class="w-full relative">
+                    <input type="text" name="q" id="desktop-search-input" placeholder="Pesquisar quadros..." class="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 focus:border-slate-800 focus:bg-white outline-none transition-all" autocomplete="off" />
+                    <Icon name="lucide:search" class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                </form>
+            </div>
+            <!-- Cart -->
+            <div class="flex items-center">
+                <button id="cart-button" class="relative w-10 h-10 flex items-center justify-center text-slate-700 hover:text-slate-900 transition-colors" aria-label="Carrinho">
+                    <Icon name="lucide:shopping-bag" class="w-5 h-5" />
+                    <span id="nav-cart-count" class="hidden absolute -top-0.5 -right-0.5 bg-slate-900 text-white text-[9px] font-black w-4 h-4 items-center justify-center rounded-full flex">0</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <Links />
+</div>
+
+<!-- Mobile Sidebar -->
+<MobileSidebar />
+
+<script>
+    import { toggleCart, totalItems } from "../../store/cartStore";
+
+    let lastScrollY = window.scrollY;
+    const navbar = document.getElementById("main-navbar");
+    const cartBtn = document.getElementById("cart-button");
+    const navCartCount = document.getElementById("nav-cart-count");
+
+    // Handle cart toggle
+    cartBtn?.addEventListener("click", (e) => {
+        e.preventDefault();
+        toggleCart();
+    });
+
+    // Update cart count in navbar
+    totalItems.subscribe((count) => {
+        if (!navCartCount) return;
+        if (count > 0) {
+            navCartCount.classList.remove("hidden");
+            navCartCount.textContent = String(count);
+        } else {
+            navCartCount.classList.add("hidden");
+        }
+    });
+
+    // Scroll hide/show behavior
+    window.addEventListener("scroll", () => {
+        if (!navbar) return;
+
+        const currentScrollY = window.scrollY;
+
+        if (currentScrollY <= 0) {
+            navbar.classList.remove("navbar-hidden");
+            lastScrollY = currentScrollY;
+            return;
+        }
+
+        if (currentScrollY > lastScrollY) {
+            navbar.classList.add("navbar-hidden");
+        } else {
+            navbar.classList.remove("navbar-hidden");
+        }
+
+        lastScrollY = currentScrollY;
+    });
+
+    // Hamburger -> open sidebar
+    const hamburgerBtn = document.getElementById("hamburger-btn");
+    const sidebar = document.getElementById("mobile-sidebar");
+    const sidebarOverlay = document.getElementById("sidebar-overlay");
+    const sidebarPanel = document.getElementById("sidebar-panel");
+    const sidebarCloseBtn = document.getElementById("sidebar-close-btn");
+
+    function openSidebar() {
+        if (!sidebar || !sidebarOverlay || !sidebarPanel) return;
+        sidebar.classList.remove("pointer-events-none");
+        sidebarOverlay.classList.remove("opacity-0");
+        sidebarOverlay.classList.add("opacity-100");
+        sidebarPanel.classList.remove("-translate-x-full");
+        sidebarPanel.classList.add("translate-x-0");
+        document.body.classList.add("overflow-hidden");
+    }
+
+    function closeSidebar() {
+        if (!sidebar || !sidebarOverlay || !sidebarPanel) return;
+        sidebarOverlay.classList.remove("opacity-100");
+        sidebarOverlay.classList.add("opacity-0");
+        sidebarPanel.classList.remove("translate-x-0");
+        sidebarPanel.classList.add("-translate-x-full");
+        document.body.classList.remove("overflow-hidden");
+        setTimeout(() => {
+            sidebar?.classList.add("pointer-events-none");
+        }, 300);
+    }
+
+    hamburgerBtn?.addEventListener("click", openSidebar);
+    sidebarOverlay?.addEventListener("click", closeSidebar);
+    sidebarCloseBtn?.addEventListener("click", closeSidebar);
+
+    // Close sidebar on any link click inside it
+    sidebarPanel?.querySelectorAll("a").forEach((link) => {
+        link.addEventListener("click", closeSidebar);
+    });
+</script>
+
+<style is:global>
+    .navbar-hidden {
+        transform: translateY(-100%);
+    }
+</style>

@@ -1,0 +1,16 @@
+{
+  "projectId": "prj_SyP3auNGhwEpRK3YbilvgwQTxfme",
+  "orgId": "team_ziWfXF33yjwAGqGAs7Pz4lI1",
+  "projectName": "ecommerce-storefront",
+  "settings": {
+    "createdAt": 1774470343057,
+    "framework": "astro",
+    "devCommand": null,
+    "installCommand": null,
+    "buildCommand": null,
+    "outputDirectory": null,
+    "rootDirectory": null,
+    "directoryListing": false,
+    "nodeVersion": "24.x"
+  }
+}

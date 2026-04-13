@@ -1,0 +1,77 @@
+---
+import { Icon } from "astro-icon/components";
+---
+<footer class="bg-slate-950 text-white pt-16 pb-8 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+            <!-- Brand -->
+            <div class="col-span-1 lg:col-span-1">
+                <a href="/" class="inline-block mb-6">
+                    <span class="text-xl font-black uppercase tracking-tighter text-white">Lado Cristao</span>
+                </a>
+                <p class="text-slate-400 mb-8 leading-relaxed text-sm">
+                    Quadros decorativos premium para transformar seus ambientes. Arte e design para sua casa.
+                </p>
+                <div class="flex gap-3">
+                    <a href="#" class="w-9 h-9 flex items-center justify-center border border-white/10 text-slate-400 hover:text-white hover:border-white/40 transition-colors" aria-label="Instagram">
+                        <Icon name="lucide:instagram" class="w-4 h-4" />
+                    </a>
+                </div>
+            </div>
+            <!-- Loja -->
+            <div>
+                <h3 class="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-6">Loja</h3>
+                <ul class="space-y-3">
+                    {[
+                        { label: "Todos os Quadros", href: "/quadros" },
+                        { label: "Mais Vendidos", href: "/quadros?sort=mais-vendidos" },
+                        { label: "Lançamentos", href: "/quadros?sort=novidades" },
+                        { label: "Promoção", href: "/quadros?sort=promocao" },
+                        { label: "Minha Conta", href: "/minhaconta" },
+                    ].map(l => (
+                        <li><a href={l.href} class="text-sm text-slate-400 hover:text-white transition-colors duration-200">{l.label}</a></li>
+                    ))}
+                </ul>
+            </div>
+            <!-- Políticas -->
+            <div>
+                <h3 class="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-6">Políticas</h3>
+                <ul class="space-y-3">
+                    {[
+                        { label: "Política de Entrega", href: "/politica-de-entrega" },
+                        { label: "Trocas e Devoluções", href: "/politica-de-trocas-e-devolucoes" },
+                        { label: "Política de Reembolso", href: "/politica-de-reembolso" },
+                        { label: "Política de Privacidade", href: "/politica-de-privacidade" },
+                        { label: "Termos de Uso e LGPD", href: "/termos-de-uso" },
+                    ].map(l => (
+                        <li><a href={l.href} class="text-sm text-slate-400 hover:text-white transition-colors duration-200">{l.label}</a></li>
+                    ))}
+                </ul>
+            </div>
+            <!-- Atendimento -->
+            <div>
+                <h3 class="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-6">Atendimento</h3>
+                <p class="text-sm text-slate-400 mb-4 leading-relaxed">Dúvidas, trocas, devoluções ou qualquer assunto:</p>
+                <a href="mailto:contato@ladocristao.com.br" class="text-sm text-white font-bold hover:underline underline-offset-2">
+                    contato@ladocristao.com.br
+                </a>
+                <p class="text-xs text-slate-500 mt-2">Seg a Sex, 08h às 17h</p>
+
+                <h3 class="text-[10px] font-bold uppercase tracking-widest text-white/40 mt-8 mb-4">Newsletter</h3>
+                <div class="flex">
+                    <input type="email" placeholder="seu@email.com" class="flex-1 px-4 py-3 text-sm bg-white/5 border border-white/10 text-white placeholder-slate-500 outline-none focus:border-white/30 transition-colors" />
+                    <button class="px-4 py-3 bg-white text-slate-900 text-sm font-black hover:bg-slate-100 transition-colors" aria-label="Inscrever">
+                        <Icon name="lucide:arrow-right" class="w-4 h-4" />
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
+            <p>&copy; {new Date().getFullYear()} Lado Cristao. Todos os direitos reservados.</p>
+            <div class="flex gap-6">
+                <a href="/politica-de-privacidade" class="hover:text-white transition-colors">Privacidade</a>
+                <a href="/termos-de-uso" class="hover:text-white transition-colors">Termos de Uso</a>
+            </div>
+        </div>
+    </div>
+</footer>

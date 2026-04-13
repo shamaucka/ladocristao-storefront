@@ -1,0 +1,175 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Breadcrumbs from "../../components/ui/Breadcrumbs.astro";
+import ProductGallery from "../../components/products/ProductGallery.astro";
+import ProductInfo from "../../components/products/ProductInfo.astro";
+import ProductFeatures from "../../components/products/ProductFeatures.astro";
+import ProductAboutPrint from "../../components/products/ProductAboutPrint.astro";
+import ProductStickyBar from "../../components/products/ProductStickyBar.astro";
+import ProductFAQ from "../../components/products/ProductFAQ.astro";
+import ProductInspirations from "../../components/products/ProductInspirations.astro";
+import CardProduct from "../../components/products/CardProduct.astro";
+import ProductReviews from "../../components/products/ProductReviews.astro";
+import { fetchProducts, fetchAPI } from "../../lib/api";
+import { products as staticProducts } from "../../data/products";
+
+// Busca reviews uma vez para toda a página (SSG - zero JS client-side)
+let reviewsData: any[] = [];
+let reviewsTotal = 0;
+let reviewsStats: any = { avg_rating: 4.9, count: 0, distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } };
+try {
+    const data = await fetchAPI<any>("/store/reviews?all=true&limit=5&page=1");
+    if (data.reviews?.reviews) {
+        reviewsData = data.reviews.reviews;
+        reviewsTotal = data.reviews.total || reviewsData.length;
+    } else if (Array.isArray(data.reviews)) {
+        reviewsData = data.reviews;
+        reviewsTotal = reviewsData.length;
+    }
+    reviewsStats = data.stats || reviewsStats;
+} catch (e) {}
+
+const featuredReview = reviewsData.find((r: any) => r.rating === 5 && r.comment?.length > 50) || reviewsData[0];
+
+export async function getStaticPaths() {
+    const { fetchProducts } = await import("../../lib/api");
+    const { products: staticProducts } = await import("../../data/products");
+    const apiProducts = await fetchProducts(500);
+    const allProducts = apiProducts || staticProducts;
+
+    return allProducts.map((product: any) => ({
+        params: { slug: product.slug },
+        props: {
+            product,
+            relatedProducts: allProducts
+                .filter((p: any) => p.category === product.category && p.slug !== product.slug)
+                .slice(0, 4),
+        },
+    }));
+}
+
+const { product, relatedProducts } = Astro.props;
+
+const categoryLabel = product.category && !product.category.includes("-") ? product.category : "Quadros";
+const breadcrumbItems = [
+    { label: "Inicio", href: "/" },
+    { label: categoryLabel, href: "/quadros" },
+    { label: product.name },
+];
+
+function renderStars(rating: number): string {
+    return "★".repeat(Math.round(rating)) + "☆".repeat(5 - Math.round(rating));
+}
+---
+
+<Layout title={`${product.name} | Lado Cristao`}>
+    <div class="bg-white min-h-screen pb-24 pt-10">
+        <div class="max-w-7xl mx-auto px-6">
+            <Breadcrumbs items={breadcrumbItems} />
+        </div>
+
+        <main class="max-w-7xl mx-auto px-6 py-12 md:py-20">
+            <!-- ===== HERO: Galeria + Info ===== -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 xl:gap-24">
+                <div>
+                    {featuredReview && (
+                        <div class="mb-5 border-l-2 border-slate-900 pl-4 py-1">
+                            <div class="text-slate-900 text-sm tracking-wider mb-1">{renderStars(featuredReview.rating)}</div>
+                            <p class="text-sm text-slate-700 leading-snug italic">"{featuredReview.comment?.slice(0, 120)}{(featuredReview.comment?.length || 0) > 120 ? '...' : ''}" — {featuredReview.customer_name}</p>
+                            <a href="#reviews-section" class="text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-slate-700 transition-colors mt-2 inline-block">
+                                {reviewsTotal > 0 ? `Ver todas as ${reviewsTotal} avaliacoes` : "Ver avaliacoes"}
+                            </a>
+                        </div>
+                    )}
+                    <ProductGallery images={product.images} />
+                </div>
+                <ProductInfo product={product} />
+            </div>
+
+            <!-- ===== FEATURES: Por que escolher ===== -->
+            <ProductFeatures />
+
+            <!-- ===== VIDEO: Qualidade em movimento (click-to-play) ===== -->
+            <section class="mt-24">
+                <div id="video-container" class="relative w-full overflow-hidden bg-slate-950 cursor-pointer group" style="padding-top: 42%;">
+                    <!-- Poster: carrega instantaneamente, sem iframe pesado -->
+                    <div id="video-poster" class="absolute inset-0 flex items-center justify-center bg-slate-900">
+                        <div class="text-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 text-white/60 group-hover:text-white/90 transition-colors mx-auto" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                            <p class="text-xs font-bold uppercase tracking-widest text-white/40 mt-2">Assistir video</p>
+                        </div>
+                    </div>
+                    <!-- Overlay com texto -->
+                    <div id="video-overlay" class="absolute inset-0 flex items-end justify-start p-8 md:p-12 pointer-events-none">
+                        <div class="bg-white/10 backdrop-blur-sm border border-white/20 px-6 py-4 max-w-sm">
+                            <p class="text-[10px] font-black uppercase tracking-widest text-white/60 mb-1">Artesanal desde o inicio</p>
+                            <p class="text-xl font-black text-white uppercase tracking-tighter leading-tight">Qualidade que<br/>voce consegue sentir</p>
+                        </div>
+                    </div>
+                </div>
+                <script is:inline>
+                    document.getElementById("video-container")?.addEventListener("click", function() {
+                        var poster = document.getElementById("video-poster");
+                        var overlay = document.getElementById("video-overlay");
+                        if (poster) poster.remove();
+                        if (overlay) overlay.remove();
+                        var iframe = document.createElement("iframe");
+                        iframe.src = "https://player.vimeo.com/video/1093108784?background=1&badge=0&autopause=0&autoplay=1&muted=1&loop=1";
+                        iframe.allow = "autoplay; fullscreen; picture-in-picture";
+                        iframe.style.cssText = "position:absolute;top:0;left:0;width:100%;height:100%;border:0;";
+                        iframe.title = "Qualidade artesanal Lado Cristao";
+                        this.appendChild(iframe);
+                        this.style.cursor = "default";
+                    }, { once: true });
+                </script>
+            </section>
+
+            <!-- ===== SOBRE A IMPRESSÃO (accordion) ===== -->
+            <div class="max-w-3xl">
+                <ProductAboutPrint />
+            </div>
+
+            <!-- ===== INSPIRAÇÕES + FOTOS DE CLIENTES (tabs) ===== -->
+            <ProductInspirations />
+
+            <!-- ===== REVIEWS ===== -->
+            <ProductReviews reviews={reviewsData} totalReviews={reviewsTotal} stats={reviewsStats} />
+
+            <!-- ===== FAQ ===== -->
+            <ProductFAQ />
+
+            <!-- ===== PRODUTOS RELACIONADOS ===== -->
+            <section class="mt-32">
+                <div class="flex items-center justify-between mb-12 border-b border-slate-100 pb-8">
+                    <h2 class="text-3xl font-black text-slate-950 uppercase tracking-tighter">
+                        Voce tambem pode gostar
+                    </h2>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                    {relatedProducts.map((relProduct) => (
+                        <CardProduct
+                            title={relProduct.name}
+                            price={relProduct.price}
+                            images={relProduct.images}
+                            stock={relProduct.stock}
+                            slug={relProduct.slug}
+                        />
+                    ))}
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Sticky bar mobile (fora do main para posicionamento fixo) -->
+    <ProductStickyBar product={product} />
+</Layout>
+
+<style is:global>
+    main {
+        animation: fadeIn 0.8s ease-out;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+</style>

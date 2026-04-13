@@ -1,0 +1,165 @@
+---
+import Layout from "../layouts/Layout.astro";
+import ProductGallery from "../components/products/ProductGallery.astro";
+import ProductInfo from "../components/products/ProductInfo.astro";
+import ProductFeatures from "../components/products/ProductFeatures.astro";
+import ProductVideos from "../components/products/ProductVideos.astro";
+import ProductCustomerPhotos from "../components/products/ProductCustomerPhotos.astro";
+import ProductStickyBar from "../components/products/ProductStickyBar.astro";
+import ProductFAQ from "../components/products/ProductFAQ.astro";
+import ProductReviews from "../components/products/ProductReviews.astro";
+import CardProduct from "../components/products/CardProduct.astro";
+import { fetchProducts, fetchAPI } from "../lib/api";
+import { products as staticProducts, getRelatedProducts } from "../data/products";
+
+const reserved = ["about", "blog", "checkout", "contact", "favorites", "quadros", "404"];
+
+// Busca reviews uma vez para toda a página (SSG)
+let reviewsData: any[] = [];
+let reviewsTotal = 0;
+let reviewsStats: any = { avg_rating: 4.9, count: 0, distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } };
+try {
+    const data = await fetchAPI<any>("/store/reviews?all=true&limit=5&page=1");
+    if (data.reviews?.reviews) {
+        reviewsData = data.reviews.reviews;
+        reviewsTotal = data.reviews.total || reviewsData.length;
+    } else if (Array.isArray(data.reviews)) {
+        reviewsData = data.reviews;
+        reviewsTotal = reviewsData.length;
+    }
+    reviewsStats = data.stats || reviewsStats;
+} catch (e) {}
+
+const featuredReview = reviewsData.find((r: any) => r.rating === 5 && r.comment?.length > 50) || reviewsData[0];
+
+function renderStars(rating: number): string {
+    return "★".repeat(Math.round(rating)) + "☆".repeat(5 - Math.round(rating));
+}
+
+export async function getStaticPaths() {
+    const { fetchProducts } = await import("../lib/api");
+    const { products: staticProducts } = await import("../data/products");
+    const apiProducts = await fetchProducts(500);
+    const allProducts = apiProducts || staticProducts;
+
+    return allProducts
+        .filter((p: any) => !["about", "blog", "checkout", "contact", "favorites", "quadros", "404"].includes(p.slug))
+        .map((product: any) => ({
+            params: { slug: product.slug },
+            props: { product },
+        }));
+}
+
+const { product } = Astro.props;
+
+// Busca produtos relacionados por historico de compras, com fallback por categoria
+let relatedProducts: any[] = [];
+try {
+    const { fetchAPI } = await import("../lib/api");
+    const data = await fetchAPI<{ products: any[] }>(`/store/products?action=related&product_id=${product.id}&limit=4`);
+    relatedProducts = data.products || [];
+} catch {}
+
+if (relatedProducts.length < 4) {
+    const apiProducts = await fetchProducts(500);
+    const allProducts = apiProducts || staticProducts;
+    const categoryFallback = allProducts
+        .filter((p: any) => p.slug !== product.slug && !relatedProducts.some((r: any) => r.id === p.id))
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 4 - relatedProducts.length);
+
+    // Normaliza os fallback products para ter os campos esperados
+    relatedProducts = [
+        ...relatedProducts.map((p: any) => ({
+            name: p.name || p.title,
+            price: p.price || (p.variants?.[0]?.prices?.[0]?.amount ?? 0),
+            images: p.images || [],
+            stock: p.stock ?? p.inventory_quantity ?? 10,
+            slug: p.handle || p.slug,
+        })),
+        ...categoryFallback,
+    ];
+} else {
+    relatedProducts = relatedProducts.map((p: any) => ({
+        name: p.name || p.title,
+        price: p.price || (p.variants?.[0]?.prices?.[0]?.amount ?? 0),
+        images: p.images || [],
+        stock: p.stock ?? p.inventory_quantity ?? 10,
+        slug: p.handle || p.slug,
+    }));
+}
+---
+
+<Layout title={`${product.name} | Lado Cristao`}>
+    <div class="bg-white min-h-screen pb-20">
+        <main class="max-w-7xl mx-auto px-6 py-6 md:py-10">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 xl:gap-16">
+                <div>
+                    <!-- Review destacada acima da galeria (SSG - zero loading) -->
+                    {featuredReview && (
+                        <div class="mb-5 border-l-2 border-slate-900 pl-4 py-1">
+                            <div class="text-slate-900 text-sm tracking-wider mb-1">{renderStars(featuredReview.rating)}</div>
+                            <p class="text-sm text-slate-700 leading-snug italic">"{featuredReview.comment?.slice(0, 120)}{(featuredReview.comment?.length || 0) > 120 ? '...' : ''}" — {featuredReview.customer_name}</p>
+                            <a href="#reviews-section" class="text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-slate-700 transition-colors mt-2 inline-block">
+                                {reviewsTotal > 0 ? `Ver todas as ${reviewsTotal} avaliacoes` : "Ver avaliacoes"}
+                            </a>
+                        </div>
+                    )}
+                    <ProductGallery images={product.images} />
+                </div>
+                <ProductInfo product={product} />
+            </div>
+
+            <!-- ===== 1. INSPIRE-SE (vídeos carrossel) ===== -->
+            <ProductVideos />
+
+            <!-- ===== 2. ARTE COM QUALIDADE (features) ===== -->
+            <ProductFeatures />
+
+            <!-- ===== 3. QUADROS QUE AMARAM (fotos UGC) ===== -->
+            <ProductCustomerPhotos />
+
+            <!-- ===== 4. REVIEWS ===== -->
+            <ProductReviews reviews={reviewsData} totalReviews={reviewsTotal} stats={reviewsStats} />
+
+            <!-- ===== 5. FAQ ===== -->
+            <ProductFAQ />
+
+            <section class="mt-20 md:mt-32">
+                <div class="flex items-center justify-between mb-10 border-b border-slate-100 pb-6">
+                    <h2 class="text-2xl md:text-3xl font-black text-slate-950 uppercase italic tracking-tighter">
+                        Voce tambem pode gostar
+                    </h2>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
+                    {relatedProducts.map((relProduct) => (
+                        <CardProduct
+                            title={relProduct.name}
+                            price={relProduct.price}
+                            images={relProduct.images}
+                            stock={relProduct.stock}
+                            slug={relProduct.slug}
+                        />
+                    ))}
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Sticky bar mobile -->
+    <ProductStickyBar product={product} />
+</Layout>
+
+<script>
+    import { trackMetaViewContent, trackTikTokViewContent, trackGoogleViewItem } from '../lib/tracking';
+
+    // Fire ViewContent tracking events
+    try {
+        const pd = JSON.parse(document.querySelector('.product-info')?.getAttribute('data-product') || '{}');
+        if (pd.id) {
+            trackMetaViewContent({ id: pd.id, name: pd.name, price: pd.price });
+            trackTikTokViewContent({ id: pd.id, name: pd.name, price: pd.price });
+            trackGoogleViewItem({ id: pd.id, name: pd.name, price: pd.price, category: pd.category });
+        }
+    } catch (e) {}
+</script>

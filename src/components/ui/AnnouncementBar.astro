@@ -1,0 +1,65 @@
+---
+import { Icon } from "astro-icon/components";
+
+const announcements = [
+  "COMPRE 2 QUADROS POR R$ 150 + FRETE GRATIS",
+  "Parcele em ate 6x sem juros no cartao",
+  "Frete Gratis na compra de 2 ou mais quadros",
+];
+---
+
+<div
+  id="announcement-bar"
+  class="bg-black text-white text-xs sm:text-sm py-2.5 relative z-50 overflow-hidden transition-all duration-300"
+>
+  <div class="max-w-7xl mx-auto px-4 text-center pr-10">
+    <div class="announcement-ticker h-5 overflow-hidden">
+      {announcements.map((text, i) => (
+        <div class="announcement-item font-semibold tracking-wide" style={`animation-delay: ${i * 3}s`}>
+          {text}
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <!-- Close Button -->
+  <button
+    id="announcement-close"
+    class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-white/70 hover:text-white transition-colors cursor-pointer z-50 rounded-full hover:bg-white/10"
+    aria-label="Fechar barra de anuncios"
+  >
+    <Icon name="lucide:x" class="w-4 h-4" />
+  </button>
+</div>
+
+<script>
+  const closeBtn = document.getElementById("announcement-close");
+  const bar = document.getElementById("announcement-bar");
+  if (closeBtn && bar) {
+    closeBtn.addEventListener("click", () => {
+      bar.style.height = "0";
+      bar.style.padding = "0";
+      bar.style.opacity = "0";
+      setTimeout(() => { bar.style.display = "none"; }, 300);
+    });
+  }
+</script>
+
+<style is:global>
+  .announcement-ticker {
+    position: relative;
+  }
+  .announcement-item {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    animation: tickerFade 9s infinite;
+  }
+  @keyframes tickerFade {
+    0%, 30% { opacity: 1; }
+    33%, 100% { opacity: 0; }
+  }
+</style>

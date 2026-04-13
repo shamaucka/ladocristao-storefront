@@ -1,0 +1,1358 @@
+---
+import { Icon } from "astro-icon/components";
+
+const estados = [
+    "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA",
+    "PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"
+];
+---
+
+<form id="checkout-form" class="space-y-8" novalidate>
+    <!-- ═══════ STEP 1 - IDENTIFICACAO ═══════ -->
+    <section id="step-1" class="checkout-step" data-step="1">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-xs p-6 md:p-8 space-y-6">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white text-xs font-black">
+                    1
+                </div>
+                <h3 class="text-sm font-black uppercase tracking-widest text-slate-950">
+                    Identificacao
+                </h3>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="form-control w-full md:col-span-2">
+                    <label class="label">
+                        <span class="label-text font-bold text-[10px] uppercase tracking-widest text-slate-400">E-mail *</span>
+                    </label>
+                    <input
+                        type="email"
+                        name="email"
+                        id="field-email"
+                        placeholder="seu@email.com"
+                        autocomplete="email"
+                        class="input input-bordered w-full rounded-xl bg-slate-50 border-slate-200 focus:border-primary focus:bg-white transition-all font-medium"
+                        required
+                    />
+                    <p class="text-xs text-red-500 mt-1 hidden" data-error="email">Informe um e-mail valido</p>
+                </div>
+
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text font-bold text-[10px] uppercase tracking-widest text-slate-400">CPF *</span>
+                    </label>
+                    <input
+                        type="text"
+                        name="cpf"
+                        id="field-cpf"
+                        placeholder="000.000.000-00"
+                        maxlength="14"
+                        class="input input-bordered w-full rounded-xl bg-slate-50 border-slate-200 focus:border-primary focus:bg-white transition-all font-medium"
+                        required
+                    />
+                    <p class="text-xs text-red-500 mt-1 hidden" data-error="cpf">Informe um CPF valido</p>
+                </div>
+
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text font-bold text-[10px] uppercase tracking-widest text-slate-400">Nome Completo *</span>
+                    </label>
+                    <input
+                        type="text"
+                        name="name"
+                        id="field-name"
+                        placeholder="Nome e Sobrenome"
+                        autocomplete="name"
+                        class="input input-bordered w-full rounded-xl bg-slate-50 border-slate-200 focus:border-primary focus:bg-white transition-all font-medium"
+                        required
+                    />
+                    <p class="text-xs text-red-500 mt-1 hidden" data-error="name">Informe seu nome completo</p>
+                </div>
+
+                <div class="form-control w-full md:col-span-2">
+                    <label class="label">
+                        <span class="label-text font-bold text-[10px] uppercase tracking-widest text-slate-400">Telefone *</span>
+                    </label>
+                    <input
+                        type="tel"
+                        name="phone"
+                        id="field-phone"
+                        placeholder="(00) 00000-0000"
+                        maxlength="15"
+                        autocomplete="tel"
+                        class="input input-bordered w-full rounded-xl bg-slate-50 border-slate-200 focus:border-primary focus:bg-white transition-all font-medium"
+                        required
+                    />
+                    <p class="text-xs text-red-500 mt-1 hidden" data-error="phone">Informe um telefone valido</p>
+                </div>
+            </div>
+
+            <!-- Global validation error banner -->
+            <div id="step1-error-banner" class="hidden bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-red-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <p class="text-sm font-bold text-red-600">Preencha os campos destacados para continuar</p>
+            </div>
+
+            <button
+                type="button"
+                id="btn-next-1"
+                class="w-full bg-primary hover:bg-primary/90 text-white rounded-xl py-4 font-black uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+                Continuar para Entrega
+                <Icon name="lucide:arrow-right" class="w-4 h-4" />
+            </button>
+        </div>
+    </section>
+
+    <!-- ═══════ STEP 2 - ENTREGA ═══════ -->
+    <section id="step-2" class="checkout-step hidden" data-step="2">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-xs p-6 md:p-8 space-y-6">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white text-xs font-black">
+                    2
+                </div>
+                <h3 class="text-sm font-black uppercase tracking-widest text-slate-950">
+                    Entrega
+                </h3>
+            </div>
+
+            <div class="space-y-4">
+                <!-- CEP only - address fields appear after lookup -->
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text font-bold text-[10px] uppercase tracking-widest text-slate-400">CEP *</span>
+                    </label>
+                    <input
+                        type="text"
+                        name="cep"
+                        id="field-cep"
+                        placeholder="00000-000"
+                        maxlength="9"
+                        class="input input-bordered w-full rounded-xl bg-slate-50 border-slate-200 focus:border-primary focus:bg-white transition-all font-medium"
+                        required
+                    />
+                    <p class="text-xs text-red-500 mt-1 hidden" data-error="cep">Informe um CEP valido</p>
+                </div>
+
+                <div id="cep-loading" class="hidden text-sm text-slate-500 flex items-center gap-2">
+                    <span class="loading loading-spinner loading-xs"></span>
+                    Buscando endereco...
+                </div>
+
+                <!-- Address fields - hidden until CEP lookup succeeds -->
+                <div id="address-fields" class="hidden space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-[1fr_120px] gap-4">
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text font-bold text-[10px] uppercase tracking-widest text-slate-400">Rua *</span>
+                        </label>
+                        <input
+                            type="text"
+                            name="rua"
+                            id="field-rua"
+                            placeholder="Rua das Flores"
+                            class="input input-bordered w-full rounded-xl bg-slate-50 border-slate-200 focus:border-primary focus:bg-white transition-all font-medium"
+                            required
+                        />
+                        <p class="text-xs text-red-500 mt-1 hidden" data-error="rua">Informe a rua</p>
+                    </div>
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text font-bold text-[10px] uppercase tracking-widest text-slate-400">Numero *</span>
+                        </label>
+                        <input
+                            type="text"
+                            name="numero"
+                            id="field-numero"
+                            placeholder="123"
+                            class="input input-bordered w-full rounded-xl bg-slate-50 border-slate-200 focus:border-primary focus:bg-white transition-all font-medium"
+                            required
+                        />
+                        <p class="text-xs text-red-500 mt-1 hidden" data-error="numero">Informe o numero</p>
+                    </div>
+                </div>
+
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text font-bold text-[10px] uppercase tracking-widest text-slate-400">Complemento</span>
+                    </label>
+                    <input
+                        type="text"
+                        name="complemento"
+                        id="field-complemento"
+                        placeholder="Apto 42, Bloco B"
+                        class="input input-bordered w-full rounded-xl bg-slate-50 border-slate-200 focus:border-primary focus:bg-white transition-all font-medium"
+                    />
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text font-bold text-[10px] uppercase tracking-widest text-slate-400">Bairro *</span>
+                        </label>
+                        <input
+                            type="text"
+                            name="bairro"
+                            id="field-bairro"
+                            placeholder="Centro"
+                            class="input input-bordered w-full rounded-xl bg-slate-50 border-slate-200 focus:border-primary focus:bg-white transition-all font-medium"
+                            required
+                        />
+                        <p class="text-xs text-red-500 mt-1 hidden" data-error="bairro">Informe o bairro</p>
+                    </div>
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text font-bold text-[10px] uppercase tracking-widest text-slate-400">Cidade *</span>
+                        </label>
+                        <input
+                            type="text"
+                            name="cidade"
+                            id="field-cidade"
+                            placeholder="Sao Paulo"
+                            class="input input-bordered w-full rounded-xl bg-slate-50 border-slate-200 focus:border-primary focus:bg-white transition-all font-medium"
+                            required
+                        />
+                        <p class="text-xs text-red-500 mt-1 hidden" data-error="cidade">Informe a cidade</p>
+                    </div>
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text font-bold text-[10px] uppercase tracking-widest text-slate-400">Estado *</span>
+                        </label>
+                        <select
+                            name="estado"
+                            id="field-estado"
+                            class="select select-bordered w-full rounded-xl bg-slate-50 border-slate-200 focus:border-primary focus:bg-white transition-all font-medium"
+                            required
+                        >
+                            <option value="" disabled selected>UF</option>
+                            {estados.map((uf) => (
+                                <option value={uf}>{uf}</option>
+                            ))}
+                        </select>
+                        <p class="text-xs text-red-500 mt-1 hidden" data-error="estado">Selecione o estado</p>
+                    </div>
+                </div>
+                </div><!-- /address-fields -->
+            </div>
+
+            <!-- Shipping Options (hidden until CEP is filled) -->
+            <div id="shipping-options" class="space-y-3 hidden">
+                <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Opcoes de Envio</p>
+                <div id="shipping-loading" class="hidden text-center py-4">
+                    <span class="loading loading-spinner loading-sm"></span>
+                    <p class="text-xs text-slate-400 mt-2">Calculando frete...</p>
+                </div>
+                <div id="shipping-results"></div>
+            </div>
+            <p id="shipping-hint" class="text-xs text-slate-400 italic">Preencha o CEP acima para calcular o frete</p>
+
+            <div class="flex gap-3">
+                <button
+                    type="button"
+                    id="btn-back-2"
+                    class="btn btn-outline border-slate-200 rounded-xl font-bold text-xs uppercase tracking-widest flex-1 cursor-pointer"
+                >
+                    <Icon name="lucide:arrow-left" class="w-4 h-4" />
+                    Voltar
+                </button>
+                <button
+                    type="button"
+                    id="btn-next-2"
+                    class="flex-[2] bg-primary hover:bg-primary/90 text-white rounded-xl py-4 font-black uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                    Continuar para Pagamento
+                    <Icon name="lucide:arrow-right" class="w-4 h-4" />
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════ STEP 3 - PAGAMENTO ═══════ -->
+    <section id="step-3" class="checkout-step hidden" data-step="3">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-xs p-6 md:p-8 space-y-6">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white text-xs font-black">
+                    3
+                </div>
+                <h3 class="text-sm font-black uppercase tracking-widest text-slate-950">
+                    Pagamento
+                </h3>
+            </div>
+
+            <!-- Payment Method Tabs -->
+            <div class="flex border-b border-slate-200">
+                <button type="button" data-tab="pix" class="payment-tab flex items-center gap-2 px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-primary text-primary cursor-pointer transition-colors">
+                    <Icon name="lucide:qr-code" class="w-4 h-4" />
+                    PIX
+                </button>
+                <button type="button" data-tab="cartao" class="payment-tab flex items-center gap-2 px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-transparent text-slate-400 hover:text-slate-600 cursor-pointer transition-colors">
+                    <Icon name="lucide:credit-card" class="w-4 h-4" />
+                    Cartao
+                </button>
+
+            </div>
+
+            <!-- PIX Panel -->
+            <div id="panel-pix" class="payment-panel space-y-6">
+                <div id="pix-generate-section">
+                    <div class="bg-emerald-50 rounded-lg p-3 flex items-center gap-2 mb-4">
+                        <Icon name="lucide:percent" class="w-4 h-4 text-emerald-600" />
+                        <p class="text-xs font-bold text-emerald-700">5% de desconto no PIX</p>
+                    </div>
+                    <button
+                        type="button"
+                        id="btn-generate-pix"
+                        class="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl py-4 font-black uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                        <Icon name="lucide:qr-code" class="w-4 h-4" />
+                        Gerar QR Code PIX
+                    </button>
+                </div>
+                <div id="pix-qr-section" class="hidden">
+                    <div class="bg-slate-50 rounded-xl p-6 text-center space-y-4">
+                        <div id="pix-qr-container" class="w-44 h-44 bg-white border-2 border-slate-200 rounded-xl mx-auto flex items-center justify-center overflow-hidden">
+                            <span class="loading loading-spinner loading-lg"></span>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Pix Copia e Cola</p>
+                            <div class="flex items-center gap-2 bg-white rounded-lg p-2.5 border border-slate-200 max-w-sm mx-auto">
+                                <code id="pix-code" class="text-[11px] text-slate-500 flex-1 font-mono truncate min-w-0">Gerando...</code>
+                                <button type="button" id="btn-copy-pix" class="flex-shrink-0 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-md hover:bg-slate-800 transition-colors cursor-pointer">
+                                    Copiar
+                                </button>
+                            </div>
+                        </div>
+                        <p id="pix-status-text" class="text-xs text-slate-400">Aguardando pagamento...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cartao Panel (PayPal Plus - iframe seguro) -->
+            <div id="panel-cartao" class="payment-panel hidden space-y-4">
+                <!-- Placeholder antes de inicializar -->
+                <div id="ppplus-placeholder" class="bg-slate-50 rounded-xl p-6 text-center space-y-3">
+                    <p class="text-sm text-slate-600 font-medium">Selecione a aba <strong>Cartao</strong> para carregar o formulario seguro</p>
+                    <div class="flex items-center justify-center gap-2 text-xs text-slate-400">
+                        <Icon name="lucide:shield-check" class="w-4 h-4 text-emerald-500" />
+                        <span>Dados processados com seguranca via PayPal</span>
+                    </div>
+                </div>
+                <!-- Loading -->
+                <div id="ppplus-loading" class="hidden text-center py-10 space-y-3">
+                    <span class="loading loading-spinner loading-md text-slate-400"></span>
+                    <p class="text-sm text-slate-400">Carregando formulario seguro de cartao...</p>
+                </div>
+                <!-- PayPal Plus iframe injected here -->
+                <div id="ppplus" class="w-full"></div>
+                <p id="card-error-msg" class="text-red-500 text-xs font-bold hidden text-center"></p>
+                <!-- Finalizar Compra button - shown after PPPlus iframe loads -->
+                <button
+                    type="button"
+                    id="btn-ppplus-pay"
+                    class="hidden w-full bg-slate-900 hover:bg-slate-800 text-white rounded-xl py-4 font-black uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                    <Icon name="lucide:lock" class="w-4 h-4" />
+                    Finalizar Compra
+                </button>
+            </div>
+
+
+            <!-- Back button for step 3 -->
+            <button
+                type="button"
+                id="btn-back-3"
+                class="w-full btn btn-outline border-slate-200 rounded-xl font-bold text-xs uppercase tracking-widest cursor-pointer"
+            >
+                <Icon name="lucide:arrow-left" class="w-4 h-4" />
+                Voltar para Entrega
+            </button>
+        </div>
+    </section>
+</form>
+
+<style is:global>
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        20% { transform: translateX(-6px); }
+        40% { transform: translateX(6px); }
+        60% { transform: translateX(-4px); }
+        80% { transform: translateX(4px); }
+    }
+    .shake { animation: shake 0.4s ease-in-out; }
+</style>
+
+<script>
+    import { totalPrice, cartItems, clearCart, isPromoActive } from "../../store/cartStore";
+    import {
+        genEventId,
+        trackMetaInitiateCheckout, trackTikTokInitiateCheckout, trackGoogleBeginCheckout,
+        trackMetaPurchase, trackTikTokPurchase, trackGooglePurchase,
+        setEnhancedConversionsData, saveUserData,
+    } from '../../lib/tracking';
+
+    const TRACK_API = window.location.hostname === "localhost"
+        ? "http://localhost:4000/api/store/track"
+        : "https://api.ladocristao.com.br/api/store/track";
+    const _sessId = localStorage.getItem("tess_vid") || "";
+    const _sentSteps = new Set<string>();
+    function trackCheckoutStep(step: string, orderId?: string) {
+        if (_sentSteps.has(step) || !_sessId) return;
+        _sentSteps.add(step);
+        fetch(TRACK_API, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ event: "checkout_step", step, sessionId: _sessId, orderId }),
+            keepalive: true,
+        }).catch(() => {});
+    }
+
+    function initCheckout() {
+    // Verifica se o DOM do checkout esta pronto
+    if (!document.getElementById("btn-next-1")) {
+        setTimeout(initCheckout, 100);
+        return;
+    }
+
+    // ── Funnel: cliente chegou no checkout ──
+    trackCheckoutStep("cart");
+
+    const PROMO_MIN_QTY = 2; // frete gratis com 2+ quadros
+
+    function getTotalQty() {
+        return cartItems.get().reduce((sum: number, item: any) => sum + item.quantity, 0);
+    }
+
+    function isEligibleForFreeShipping() {
+        return getTotalQty() >= PROMO_MIN_QTY;
+    }
+
+    // ── State ──
+    let currentStep = 1;
+    let selectedShipping = "pac";
+    const shippingPrices: Record<string, number> = { pac: 19.90, sedex: 32.90 };
+    let actualShippingPrice = 0; // Começa zerado — só define após CEP no step 2
+
+    const formatPrice = (price: number) =>
+        new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(price);
+
+    // ── Step Navigation ──
+    function showStep(step: number) {
+        document.querySelectorAll(".checkout-step").forEach((el) => {
+            el.classList.add("hidden");
+        });
+        const target = document.getElementById(`step-${step}`);
+        if (target) {
+            target.classList.remove("hidden");
+            target.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+        currentStep = step;
+        document.dispatchEvent(new CustomEvent("checkout:step-changed", { detail: { step } }));
+    }
+
+    // Navigation buttons
+    const btnNext1 = document.getElementById("btn-next-1");
+    const step1ErrorBanner = document.getElementById("step1-error-banner");
+
+    btnNext1?.addEventListener("click", () => {
+        // Force browser autofill to commit values before validation
+        ["field-email", "field-cpf", "field-name", "field-phone"].forEach((id) => {
+            const el = document.getElementById(id) as HTMLInputElement;
+            if (el) el.dispatchEvent(new Event("change", { bubbles: true }));
+        });
+
+        if (validateStep1()) {
+            step1ErrorBanner?.classList.add("hidden");
+            trackCheckoutStep("identification");
+            showStep(2);
+            // InitiateCheckout — dispara no step 1→2
+            try {
+                const total = totalPrice.get();
+                const items = cartItems.get();
+                trackMetaInitiateCheckout(total, items.reduce((s: number, i: any) => s + i.quantity, 0));
+                trackTikTokInitiateCheckout(total);
+                trackGoogleBeginCheckout(total, items.map((i: any) => ({ id: i.id, name: i.name, price: i.price, quantity: i.quantity })));
+                const form = getFormData();
+                saveUserData({ email: form.email, phone: form.phone, name: form.name });
+            } catch (e) {}
+        } else {
+            // Show global error banner
+            step1ErrorBanner?.classList.remove("hidden");
+            step1ErrorBanner?.scrollIntoView({ behavior: "smooth", block: "center" });
+            // Shake the button
+            btnNext1.classList.add("shake");
+            setTimeout(() => btnNext1.classList.remove("shake"), 400);
+        }
+    });
+    const btnNext2 = document.getElementById("btn-next-2");
+    btnNext2?.addEventListener("click", () => {
+        ["field-cep", "field-rua", "field-numero", "field-bairro", "field-cidade", "field-estado"].forEach((id) => {
+            const el = document.getElementById(id) as HTMLInputElement;
+            if (el) el.dispatchEvent(new Event("change", { bubbles: true }));
+        });
+        if (cepInput) cepInput.value = maskCEP(cepInput.value);
+        if (validateStep2()) {
+            trackCheckoutStep("address");
+            trackCheckoutStep("payment");
+            showStep(3);
+        } else {
+            btnNext2.classList.add("shake");
+            setTimeout(() => btnNext2.classList.remove("shake"), 400);
+        }
+    });
+    document.getElementById("btn-back-2")?.addEventListener("click", () => showStep(1));
+    document.getElementById("btn-back-3")?.addEventListener("click", () => showStep(2));
+
+    // Listen for step navigation from page
+    document.addEventListener("checkout:goto-step", ((e: CustomEvent) => {
+        const targetStep = e.detail.step;
+        // Only allow going to steps that are completed or current
+        if (targetStep <= currentStep) {
+            showStep(targetStep);
+        }
+    }) as EventListener);
+
+    // ── Input Masks ──
+    function maskCPF(value: string) {
+        return value.replace(/\D/g, '')
+            .replace(/(\d{3})(\d)/, '$1.$2')
+            .replace(/(\d{3})(\d)/, '$1.$2')
+            .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    }
+
+    function maskPhone(value: string) {
+        return value.replace(/\D/g, '')
+            .replace(/(\d{2})(\d)/, '($1) $2')
+            .replace(/(\d{5})(\d)/, '$1-$2');
+    }
+
+    function maskCEP(value: string) {
+        return value.replace(/\D/g, '')
+            .replace(/(\d{5})(\d)/, '$1-$2');
+    }
+
+    function maskCardNumber(value: string) {
+        return value.replace(/\D/g, '')
+            .replace(/(\d{4})(?=\d)/g, '$1 ')
+            .trim();
+    }
+
+    function maskExpiry(value: string) {
+        return value.replace(/\D/g, '')
+            .replace(/(\d{2})(\d)/, '$1/$2');
+    }
+
+    const cpfInput = document.getElementById("field-cpf") as HTMLInputElement;
+    const phoneInput = document.getElementById("field-phone") as HTMLInputElement;
+    const cepInput = document.getElementById("field-cep") as HTMLInputElement;
+    const cardNumberInput = document.getElementById("field-card-number") as HTMLInputElement;
+    const cardExpiryInput = document.getElementById("field-card-expiry") as HTMLInputElement;
+    const cardCvvInput = document.getElementById("field-card-cvv") as HTMLInputElement;
+
+    cpfInput?.addEventListener("input", () => { cpfInput.value = maskCPF(cpfInput.value); });
+    cpfInput?.addEventListener("change", () => { cpfInput.value = maskCPF(cpfInput.value); });
+    phoneInput?.addEventListener("input", () => { phoneInput.value = maskPhone(phoneInput.value); });
+    phoneInput?.addEventListener("change", () => { phoneInput.value = maskPhone(phoneInput.value); });
+    cepInput?.addEventListener("input", () => { cepInput.value = maskCEP(cepInput.value); });
+    cepInput?.addEventListener("change", () => { cepInput.value = maskCEP(cepInput.value); });
+    cardNumberInput?.addEventListener("input", () => { cardNumberInput.value = maskCardNumber(cardNumberInput.value); });
+    cardExpiryInput?.addEventListener("input", () => { cardExpiryInput.value = maskExpiry(cardExpiryInput.value); });
+    cardCvvInput?.addEventListener("input", () => { cardCvvInput.value = cardCvvInput.value.replace(/\D/g, ''); });
+
+    // ── ViaCEP Auto-fill ──
+    const cepLoading = document.getElementById("cep-loading");
+    const ruaInput = document.getElementById("field-rua") as HTMLInputElement;
+    const bairroInput = document.getElementById("field-bairro") as HTMLInputElement;
+    const cidadeInput = document.getElementById("field-cidade") as HTMLInputElement;
+    const estadoInput = document.getElementById("field-estado") as HTMLSelectElement;
+
+    const addressFields = document.getElementById("address-fields");
+
+    async function fetchCEP(cep: string) {
+        const cleanCep = cep.replace(/\D/g, "");
+        if (cleanCep.length !== 8) return;
+
+        cepLoading?.classList.remove("hidden");
+        addressFields?.classList.add("hidden");
+        try {
+            const res = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+            const data = await res.json();
+
+            if (!data.erro) {
+                if (ruaInput && data.logradouro) ruaInput.value = data.logradouro;
+                if (bairroInput && data.bairro) bairroInput.value = data.bairro;
+                if (cidadeInput && data.localidade) cidadeInput.value = data.localidade;
+                if (estadoInput && data.uf) estadoInput.value = data.uf;
+                // Show address fields and focus on numero
+                addressFields?.classList.remove("hidden");
+                document.getElementById("field-numero")?.focus();
+            } else {
+                // CEP not found - still show fields for manual entry
+                addressFields?.classList.remove("hidden");
+            }
+        } catch (err) {
+            console.error("Erro ao buscar CEP:", err);
+            addressFields?.classList.remove("hidden");
+        } finally {
+            cepLoading?.classList.add("hidden");
+        }
+    }
+
+    // Auto-fetch when CEP is complete (8 digits typed OR autocomplete)
+    function onCepFilled() {
+        const clean = cepInput.value.replace(/\D/g, "");
+        if (clean.length === 8) { fetchCEP(cepInput.value); calcShipping(cepInput.value); }
+    }
+    cepInput?.addEventListener("input", onCepFilled);
+    cepInput?.addEventListener("change", onCepFilled);  // browser autocomplete fires change
+
+    // ── Shipping Calculation from API ──
+    const shippingOptions = document.getElementById("shipping-options");
+    const shippingResults = document.getElementById("shipping-results");
+    const shippingLoading = document.getElementById("shipping-loading");
+    const shippingHint = document.getElementById("shipping-hint");
+
+    async function calcShipping(cep: string) {
+        const cleanCep = cep.replace(/\D/g, "");
+        if (cleanCep.length !== 8) return;
+
+        shippingOptions?.classList.remove("hidden");
+        shippingLoading?.classList.remove("hidden");
+        shippingHint?.classList.add("hidden");
+        if (shippingResults) shippingResults.innerHTML = "";
+
+        try {
+            const res = await fetch("https://api.ladocristao.com.br/api/store/shipping", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "calculate", cep: cleanCep, cartTotal: totalPrice.get() }),
+            });
+            const data = await res.json();
+            shippingLoading?.classList.add("hidden");
+
+            if (data.shipping) {
+                const s = data.shipping;
+                const freeByPromo = isEligibleForFreeShipping();
+                const isFree = s.free || freeByPromo;
+                const priceText = isFree ? "Gratis" : `R$ ${(s.cost / 100).toFixed(2).replace(".", ",")}`;
+                if (shippingResults) {
+                    shippingResults.innerHTML = `
+                        <label class="flex items-center gap-4 p-4 border border-primary rounded-xl cursor-pointer bg-primary/5">
+                            <input type="radio" name="shipping" value="standard" class="radio radio-primary radio-sm" checked />
+                            <div class="flex-1">
+                                <p class="font-bold text-sm text-slate-950">Envio Padrao</p>
+                                <p class="text-xs text-slate-400">${freeByPromo ? "Frete gratis na compra de 2+ quadros" : (s.message || s.delivery_days_min + " a " + s.delivery_days_max + " dias uteis")}</p>
+                            </div>
+                            <span class="font-black text-sm ${isFree ? "text-emerald-600" : "text-slate-950"}">${priceText}</span>
+                        </label>
+                    `;
+                    selectedShipping = "standard";
+                    const shippingPrice = isFree ? 0 : s.cost / 100;
+                    actualShippingPrice = shippingPrice;
+                    document.dispatchEvent(new CustomEvent("checkout:shipping-changed", {
+                        detail: { method: "standard", price: shippingPrice, free: isFree }
+                    }));
+                    // shipping step removido do funil
+                }
+            } else {
+                if (shippingResults) shippingResults.innerHTML = `<p class="text-sm text-red-500">${data.error || "Erro ao calcular frete"}</p>`;
+            }
+        } catch (err) {
+            shippingLoading?.classList.add("hidden");
+            if (shippingResults) shippingResults.innerHTML = `<p class="text-sm text-red-500">Erro ao calcular frete</p>`;
+        }
+    }
+
+    // ── Shipping Selection ──
+    document.addEventListener("click", (e) => {
+        const radio = (e.target as HTMLElement).closest('input[name="shipping"]') as HTMLInputElement;
+        if (radio) {
+            selectedShipping = radio.value;
+        }
+    });
+
+    // Frete começa zerado — só atualiza após CEP no step 2
+    document.dispatchEvent(new CustomEvent("checkout:shipping-changed", {
+        detail: { method: "", price: 0, free: isEligibleForFreeShipping(), pending: true }
+    }));
+
+    // ── Payment Tabs ──
+    const paymentTabs = document.querySelectorAll(".payment-tab");
+    const paymentPanels = document.querySelectorAll(".payment-panel");
+
+    paymentTabs.forEach((tab) => {
+        tab.addEventListener("click", () => {
+            const target = tab.getAttribute("data-tab");
+
+            paymentTabs.forEach((t) => {
+                t.classList.remove("border-primary", "text-primary");
+                t.classList.add("border-transparent", "text-slate-400");
+            });
+            tab.classList.remove("border-transparent", "text-slate-400");
+            tab.classList.add("border-primary", "text-primary");
+
+            paymentPanels.forEach((panel) => panel.classList.add("hidden"));
+            document.getElementById(`panel-${target}`)?.classList.remove("hidden");
+
+            // Auto-initialize PayPal Plus when cartao tab is selected
+            if (target === "cartao" && !ppplusInitialized) {
+                initPayPalPlus();
+            }
+        });
+    });
+
+    // ── Parcelas (Installments) ──
+    const parcelasSelect = document.getElementById("field-parcelas") as HTMLSelectElement;
+
+    function updateParcelas(total: number) {
+        if (!parcelasSelect) return;
+        parcelasSelect.innerHTML = "";
+        for (let i = 1; i <= 12; i++) {
+            const value = total / i;
+            const label = i === 1
+                ? `1x de ${formatPrice(total)} sem juros`
+                : `${i}x de ${formatPrice(value)} sem juros`;
+            const opt = document.createElement("option");
+            opt.value = String(i);
+            opt.textContent = label;
+            parcelasSelect.appendChild(opt);
+        }
+    }
+
+    totalPrice.subscribe((price) => {
+        const shipping = shippingPrices[selectedShipping] || 0;
+        updateParcelas(price + shipping);
+    });
+
+    // ── Copy PIX Code ──
+    document.getElementById("btn-copy-pix")?.addEventListener("click", () => {
+        const code = document.getElementById("pix-code")?.textContent || "";
+        navigator.clipboard.writeText(code).then(() => {
+            const btn = document.getElementById("btn-copy-pix");
+            if (btn) {
+                btn.innerHTML = '<span class="text-xs font-bold text-emerald-600">Copiado!</span>';
+                setTimeout(() => {
+                    btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
+                }, 2000);
+            }
+        });
+    });
+
+    // ══════════════ REAL PAYMENT INTEGRATION ══════════════
+    const API_URL = "https://api.ladocristao.com.br/api";
+
+    function getFormData() {
+        return {
+            email: (document.getElementById("field-email") as HTMLInputElement)?.value || "",
+            cpf: (document.getElementById("field-cpf") as HTMLInputElement)?.value || "",
+            name: (document.getElementById("field-name") as HTMLInputElement)?.value || "",
+            phone: (document.getElementById("field-phone") as HTMLInputElement)?.value || "",
+            cep: (document.getElementById("field-cep") as HTMLInputElement)?.value || "",
+            rua: (document.getElementById("field-rua") as HTMLInputElement)?.value || "",
+            numero: (document.getElementById("field-numero") as HTMLInputElement)?.value || "",
+            complemento: (document.getElementById("field-complemento") as HTMLInputElement)?.value || "",
+            bairro: (document.getElementById("field-bairro") as HTMLInputElement)?.value || "",
+            cidade: (document.getElementById("field-cidade") as HTMLInputElement)?.value || "",
+            estado: (document.getElementById("field-estado") as HTMLSelectElement)?.value || "",
+        };
+    }
+
+    // Event ID para deduplicação Pixel + CAPI (gerado uma vez, usado em ambos)
+    const sharedPurchaseEventId = genEventId();
+
+    // Create order in backend
+    async function createOrder(): Promise<string | null> {
+        const form = getFormData();
+        const items = cartItems.get();
+        const total = totalPrice.get(); // já inclui promo
+        const promo = isPromoActive(items);
+        const PROMO_PRICE = 75; // R$75 cada na promo
+
+        try {
+            // unit_price em centavos — usa preço promo se ativo
+            const orderItems = items.map(i => ({
+                product_id: i.id,
+                title: i.name,
+                sku: i.id,
+                quantity: i.quantity,
+                unit_price: Math.round((promo ? PROMO_PRICE : i.price) * 100),
+                original_price: Math.round(i.price * 100),
+            }));
+
+            const subtotalCents = orderItems.reduce((s, i) => s + i.unit_price * i.quantity, 0);
+            const discountCents = promo
+                ? items.reduce((s, i) => s + Math.round((i.price - PROMO_PRICE) * 100) * i.quantity, 0)
+                : 0;
+
+            const res = await fetch(API_URL + "/store/orders", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    action: "create",
+                    email: form.email,
+                    name: form.name,
+                    cpf: form.cpf.replace(/\D/g, ""),
+                    phone: form.phone.replace(/\D/g, ""),
+                    items: orderItems,
+                    subtotal_override: subtotalCents,
+                    discount_amount: discountCents,
+                    shipping: {
+                        address_line1: `${form.rua}, ${form.numero}`,
+                        address_line2: form.complemento,
+                        neighborhood: form.bairro,
+                        city: form.cidade,
+                        state: form.estado,
+                        postal_code: form.cep.replace(/\D/g, ""),
+                    },
+                    // Dados para CAPI (salvos no pedido para uso nos webhooks)
+                    tracking_data: {
+                        fbp: typeof (window as any)._fbGetCookies === 'function' ? (window as any)._fbGetCookies()?.fbp : undefined,
+                        fbc: typeof (window as any)._fbGetCookies === 'function' ? (window as any)._fbGetCookies()?.fbc : undefined,
+                        user_agent: navigator.userAgent,
+                        purchase_event_id: sharedPurchaseEventId, // mesmo ID para Pixel e CAPI
+                    },
+                }),
+            });
+            const data = await res.json();
+            if (data.error) { console.error("Order error:", data.error); return null; }
+            // Guarda display_id para o ticket de confirmação
+            if (data.order?.display_id) {
+                (window as any).__tessOrderDisplayId = data.order.display_id;
+            }
+            return data.order?.id || null;
+        } catch (err) {
+            console.error("Erro ao criar pedido:", err);
+            return null;
+        }
+    }
+
+    // ── PIX via Woovi ──
+    document.getElementById("btn-generate-pix")?.addEventListener("click", async () => {
+        const btn = document.getElementById("btn-generate-pix") as HTMLButtonElement;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading loading-spinner loading-sm"></span> Gerando PIX...';
+
+        // Set Enhanced Conversions data before payment
+        try {
+            const form = getFormData();
+            await setEnhancedConversionsData({
+                email: form.email, phone: form.phone, name: form.name,
+                address: { zip: form.cep, city: form.cidade, state: form.estado },
+            });
+        } catch (e) {}
+
+        const orderId = await createOrder();
+        if (!orderId) {
+            btn.disabled = false;
+            btn.innerHTML = 'Erro - Tente novamente';
+            return;
+        }
+        trackCheckoutStep("order_created", orderId);
+
+        try {
+            const form = getFormData();
+            const total = totalPrice.get();
+            const pixTotal = Math.round((total + actualShippingPrice) * 0.95 * 100); // subtotal + frete, 5% desconto PIX
+
+            const res = await fetch(API_URL + "/store/payments", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    action: "pix_create",
+                    orderId,
+                    displayId: orderId.substring(0, 8),
+                    amount: pixTotal,
+                    customerName: form.name,
+                    customerEmail: form.email,
+                    customerCpf: form.cpf,
+                }),
+            });
+            const data = await res.json();
+
+            // Show QR code
+            document.getElementById("pix-generate-section")?.classList.add("hidden");
+            document.getElementById("pix-qr-section")?.classList.remove("hidden");
+
+            const qrContainer = document.getElementById("pix-qr-container");
+            if (qrContainer && data.qrCodeImage) {
+                qrContainer.innerHTML = `<img src="${data.qrCodeImage}" alt="QR Code PIX" class="w-full h-full object-contain" />`;
+            } else if (qrContainer) {
+                qrContainer.innerHTML = `<div class="text-center"><p class="text-xs text-slate-400">Use o codigo abaixo</p></div>`;
+            }
+
+            const pixCode = document.getElementById("pix-code");
+            if (pixCode && data.brCode) {
+                pixCode.textContent = data.brCode;
+            }
+
+            // Poll for payment status
+            if (data.chargeId) {
+                const pollInterval = setInterval(async () => {
+                    try {
+                        const statusRes = await fetch(API_URL + "/store/payments", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ action: "pix_status", chargeId: data.chargeId }),
+                        });
+                        const statusData = await statusRes.json();
+                        if (statusData.paid) {
+                            clearInterval(pollInterval);
+                            const statusText = document.getElementById("pix-status-text");
+                            if (statusText) {
+                                statusText.className = "text-sm font-bold text-emerald-600";
+                                statusText.textContent = "Pagamento confirmado!";
+                            }
+                            // Fire Purchase tracking
+                            try {
+                                const items = cartItems.get();
+                                const total = totalPrice.get();
+                                const pixTotal = Math.round(total * 0.95 * 100) / 100;
+                                const purchaseItems = items.map((i: any) => ({ id: i.id, name: i.name, price: i.price, quantity: i.quantity }));
+                                trackMetaPurchase({ orderId: orderId!, value: pixTotal, items: purchaseItems, eventId: sharedPurchaseEventId });
+                                trackTikTokPurchase({ orderId: orderId!, value: pixTotal });
+                                trackGooglePurchase({ orderId: orderId!, value: pixTotal, items: purchaseItems });
+                            } catch (e) {}
+                            trackCheckoutStep("purchase", orderId || undefined);
+                            // Mostra ticket de confirmação (mesmo fluxo do cartão)
+                            // NÃO chamar clearCart() — completePurchase() no handler já limpa
+                            const form = getFormData();
+                            document.dispatchEvent(new CustomEvent("checkout:complete", { detail: { name: form.name, displayId: (window as any).__tessOrderDisplayId || "" } }));
+                        }
+                    } catch {}
+                }, 5000); // Check every 5 seconds
+
+                // Stop polling after 15 minutes
+                setTimeout(() => clearInterval(pollInterval), 15 * 60 * 1000);
+            }
+        } catch (err) {
+            console.error("Erro PIX:", err);
+            btn.disabled = false;
+            btn.innerHTML = 'Erro - Tente novamente';
+        }
+    });
+
+    // ── PayPal Plus (iframe) ──
+    let ppplusOrderId: string | null = null;
+    let ppplusPaymentId: string | null = null;
+    let ppplusInitialized = false;
+    let ppplusRef: any = null;
+
+    async function initPayPalPlus() {
+        if (ppplusInitialized) return;
+        const errorMsg = document.getElementById("card-error-msg");
+        const placeholder = document.getElementById("ppplus-placeholder");
+        const loading = document.getElementById("ppplus-loading");
+
+        placeholder?.classList.add("hidden");
+        loading?.classList.remove("hidden");
+        if (errorMsg) errorMsg.classList.add("hidden");
+
+        // Set Enhanced Conversions data when user reaches payment step
+        try {
+            const form = getFormData();
+            await setEnhancedConversionsData({
+                email: form.email, phone: form.phone, name: form.name,
+                address: { zip: form.cep, city: form.cidade, state: form.estado },
+            });
+        } catch (e) {}
+
+        // Create order in backend
+        const orderId = await createOrder();
+        if (!orderId) {
+            loading?.classList.add("hidden");
+            placeholder?.classList.remove("hidden");
+            if (errorMsg) { errorMsg.textContent = "Erro ao criar pedido. Tente novamente."; errorMsg.classList.remove("hidden"); }
+            return;
+        }
+        ppplusOrderId = orderId;
+        trackCheckoutStep("order_created", orderId);
+
+        // Create PayPal Plus payment in backend
+        try {
+            const form = getFormData();
+            const total = totalPrice.get();
+            const res = await fetch(API_URL + "/store/payments", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    action: "ppplus_create",
+                    orderId,
+                    displayId: orderId.substring(0, 8),
+                    amount: Math.round((total + actualShippingPrice) * 100), // subtotal + frete
+                    customerName: form.name,
+                    customerEmail: form.email,
+                    customerCpf: form.cpf.replace(/\D/g, ""),
+                }),
+            });
+            const data = await res.json();
+            if (data.error) throw new Error(data.error);
+
+            ppplusPaymentId = data.paymentId;
+            loadPayPalPlusScript(data.approvalUrl);
+        } catch (err: any) {
+            loading?.classList.add("hidden");
+            placeholder?.classList.remove("hidden");
+            if (errorMsg) { errorMsg.textContent = err.message || "Erro ao inicializar pagamento."; errorMsg.classList.remove("hidden"); }
+        }
+    }
+
+    function loadPayPalPlusScript(approvalUrl: string) {
+        const existing = document.getElementById("ppplus-script");
+        if (existing && (window as any).PAYPAL?.apps?.PPP) {
+            renderPayPalPlus(approvalUrl);
+            return;
+        }
+        const script = document.createElement("script");
+        script.id = "ppplus-script";
+        script.src = "https://www.paypalobjects.com/webstatic/ppplusdcc/ppplusdcc.min.js";
+        script.async = true;
+        script.onload = () => renderPayPalPlus(approvalUrl);
+        script.onerror = () => {
+            document.getElementById("ppplus-loading")?.classList.add("hidden");
+            document.getElementById("ppplus-placeholder")?.classList.remove("hidden");
+            const em = document.getElementById("card-error-msg");
+            if (em) { em.textContent = "Erro ao carregar formulario de pagamento."; em.classList.remove("hidden"); }
+        };
+        document.body.appendChild(script);
+    }
+
+    function renderPayPalPlus(approvalUrl: string) {
+        const PP = (window as any).PAYPAL;
+        if (!PP?.apps?.PPP) {
+            document.getElementById("ppplus-loading")?.classList.add("hidden");
+            document.getElementById("ppplus-placeholder")?.classList.remove("hidden");
+            return;
+        }
+        const container = document.getElementById("ppplus");
+        if (container) container.innerHTML = "";
+        const form = getFormData();
+
+        ppplusRef = PP.apps.PPP({
+            approvalUrl,
+            placeholder: "ppplus",
+            mode: "live",
+            country: "BR",
+            language: "pt_BR",
+            payerEmail: form.email,
+            payerFirstName: form.name.split(" ")[0],
+            payerLastName: form.name.split(" ").slice(1).join(" ") || form.name.split(" ")[0],
+            payerPhone: form.phone.replace(/\D/g, ""),
+            payerTaxId: form.cpf.replace(/\D/g, ""),
+            onContinue: async (_: string, payerId: string) => {
+                await executePayPalPlus(payerId);
+            },
+            onError: (err: any) => {
+                const detail = typeof err === "object" ? JSON.stringify(err) : String(err);
+                const msg = detail.includes("INTERNAL_SERVICE_ERROR") || detail.includes("NOT_ELIGIBLE")
+                    ? "Pagamento via cartao indisponivel no momento. Use PIX."
+                    : "Erro no pagamento. Verifique os dados do cartao.";
+                const em = document.getElementById("card-error-msg");
+                if (em) { em.textContent = msg; em.classList.remove("hidden"); }
+            },
+            onLoad: () => {
+                document.getElementById("ppplus-loading")?.classList.add("hidden");
+                document.getElementById("btn-ppplus-pay")?.classList.remove("hidden");
+                ppplusInitialized = true;
+            },
+        });
+    }
+
+    async function executePayPalPlus(payerId: string) {
+        const errorMsg = document.getElementById("card-error-msg");
+        if (errorMsg) errorMsg.classList.add("hidden");
+        // Usa o mesmo event ID compartilhado para deduplicação Pixel + CAPI
+        const purchaseEventId = sharedPurchaseEventId;
+        // Read fbp/fbc cookies for CAPI matching
+        const fbCookies = typeof (window as any)._fbGetCookies === 'function' ? (window as any)._fbGetCookies() : {};
+        const ttclid = typeof document !== 'undefined'
+            ? (document.cookie.split(';').find((c: string) => c.trim().startsWith('ttclid='))?.split('=')?.[1] || '')
+            : '';
+        try {
+            const res = await fetch(API_URL + "/store/payments", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    action: "ppplus_execute",
+                    orderId: ppplusOrderId,
+                    paymentId: ppplusPaymentId,
+                    payerId,
+                    eventId: purchaseEventId,
+                    fbp: fbCookies.fbp,
+                    fbc: fbCookies.fbc,
+                    ttclid,
+                }),
+            });
+            const data = await res.json();
+            if (data.error) throw new Error(data.error);
+            if (data.paid) {
+                // Fire Purchase tracking with same eventId sent to CAPI (deduplication)
+                try {
+                    const items = cartItems.get();
+                    const total = totalPrice.get();
+                    const purchaseItems = items.map((i: any) => ({ id: i.id, name: i.name, price: i.price, quantity: i.quantity }));
+                    console.log("[Tess] Purchase tracking:", { orderId: ppplusOrderId, total, items: purchaseItems.length, hasFbq: !!(window as any).fbq });
+                    trackMetaPurchase({ orderId: ppplusOrderId!, value: total, items: purchaseItems, eventId: purchaseEventId });
+                    trackTikTokPurchase({ orderId: ppplusOrderId!, value: total });
+                    trackGooglePurchase({ orderId: ppplusOrderId!, value: total, items: purchaseItems });
+                } catch (e) { console.error("[Tess] Purchase tracking error:", e); }
+                trackCheckoutStep("purchase", ppplusOrderId || undefined);
+                // NÃO chamar clearCart() aqui — completePurchase() no handler do checkout:complete já limpa
+                const form = getFormData();
+                document.dispatchEvent(new CustomEvent("checkout:complete", { detail: { name: form.name, displayId: (window as any).__tessOrderDisplayId || "" } }));
+            }
+        } catch (err: any) {
+            if (errorMsg) { errorMsg.textContent = err.message || "Erro ao finalizar pagamento."; errorMsg.classList.remove("hidden"); }
+            // Re-enable button on error
+            const btn = document.getElementById("btn-ppplus-pay") as HTMLButtonElement;
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Finalizar Compra';
+            }
+        }
+    }
+
+    // ── Validation ──
+    function showError(field: string, message?: string) {
+        const el = document.querySelector(`[data-error="${field}"]`) as HTMLElement;
+        if (el) {
+            if (message) el.textContent = message;
+            el.classList.remove("hidden");
+        }
+        // Add red border + ring to the corresponding input/select
+        const input = document.getElementById(`field-${field}`) as HTMLElement;
+        if (input) {
+            input.classList.add("border-red-500", "ring-1", "ring-red-300");
+            input.classList.remove("border-slate-200");
+        }
+    }
+
+    function clearFieldError(field: string) {
+        const el = document.querySelector(`[data-error="${field}"]`) as HTMLElement;
+        if (el) el.classList.add("hidden");
+        const input = document.getElementById(`field-${field}`) as HTMLElement;
+        if (input) {
+            input.classList.remove("border-red-500", "ring-1", "ring-red-300");
+            input.classList.add("border-slate-200");
+        }
+        // Hide banner if all errors are now cleared
+        const anyVisible = document.querySelectorAll("[data-error]:not(.hidden)").length;
+        if (anyVisible === 0) {
+            document.getElementById("step1-error-banner")?.classList.add("hidden");
+        }
+    }
+
+    function hideAllErrors() {
+        document.querySelectorAll("[data-error]").forEach((el) => el.classList.add("hidden"));
+        // Remove red borders + rings from all fields
+        const fields = ["email", "cpf", "name", "phone", "cep", "rua", "numero", "bairro", "cidade", "estado"];
+        fields.forEach((f) => {
+            const input = document.getElementById(`field-${f}`) as HTMLElement;
+            if (input) {
+                input.classList.remove("border-red-500", "ring-1", "ring-red-300");
+                input.classList.add("border-slate-200");
+            }
+        });
+    }
+
+    // Clear error on input for better UX
+    ["email", "cpf", "name", "phone", "cep", "rua", "numero", "bairro", "cidade", "estado"].forEach((field) => {
+        const el = document.getElementById(`field-${field}`);
+        if (el) {
+            el.addEventListener("input", () => clearFieldError(field));
+            el.addEventListener("change", () => clearFieldError(field));
+        }
+    });
+
+    function validarCPF(cpf: string): boolean {
+        if (cpf.length !== 11) return false;
+        // Rejeita CPFs com todos os dígitos iguais (ex: 111.111.111-11)
+        if (/^(\d)\1+$/.test(cpf)) return false;
+        // Validação dos dígitos verificadores
+        let soma = 0;
+        for (let i = 0; i < 9; i++) soma += parseInt(cpf[i]) * (10 - i);
+        let resto = (soma * 10) % 11;
+        if (resto === 10) resto = 0;
+        if (resto !== parseInt(cpf[9])) return false;
+        soma = 0;
+        for (let i = 0; i < 10; i++) soma += parseInt(cpf[i]) * (11 - i);
+        resto = (soma * 10) % 11;
+        if (resto === 10) resto = 0;
+        return resto === parseInt(cpf[10]);
+    }
+
+    function validateStep1(): boolean {
+        hideAllErrors();
+        let valid = true;
+        let firstError: string | null = null;
+
+        const emailEl = document.getElementById("field-email") as HTMLInputElement;
+        const cpfEl = document.getElementById("field-cpf") as HTMLInputElement;
+        const nameEl = document.getElementById("field-name") as HTMLInputElement;
+        const phoneEl = document.getElementById("field-phone") as HTMLInputElement;
+
+        const email = emailEl?.value?.trim() || "";
+        const cpf = cpfEl?.value || "";
+        const name = nameEl?.value?.trim() || "";
+        const phone = phoneEl?.value || "";
+
+        // Aplica máscaras caso ainda não tenham sido aplicadas
+        if (cpfEl && cpf) cpfEl.value = maskCPF(cpf);
+        if (phoneEl && phone) phoneEl.value = maskPhone(phone);
+
+        // Email
+        if (!email || !email.includes("@") || !email.includes(".")) {
+            showError("email", "Informe um e-mail valido");
+            valid = false;
+            if (!firstError) firstError = "email";
+        } else {
+            const domain = email.split("@")[1]?.toLowerCase();
+            const typos: Record<string, string> = {
+                "gamil.com": "gmail.com", "gmai.com": "gmail.com", "gmial.com": "gmail.com", "gmal.com": "gmail.com",
+                "hormail.com": "hotmail.com", "hotmal.com": "hotmail.com", "hotmial.com": "hotmail.com", "homail.com": "hotmail.com",
+                "outloo.com": "outlook.com", "outlok.com": "outlook.com",
+                "yaho.com": "yahoo.com", "yahooo.com": "yahoo.com",
+            };
+            if (domain && typos[domain]) {
+                // Aviso sugestivo — NÃO bloqueia, só mostra a sugestão
+                showError("email", "Voce quis dizer " + email.split("@")[0] + "@" + typos[domain] + "? Se sim, corrija. Se nao, pode continuar.");
+                // NÃO seta valid = false — permite seguir
+            }
+        }
+
+        // CPF
+        const cpfDigits = cpf.replace(/\D/g, "");
+        if (!cpfDigits || cpfDigits.length < 11) {
+            showError("cpf", `CPF deve conter 11 digitos (${cpfDigits.length} informados)`);
+            valid = false;
+            if (!firstError) firstError = "cpf";
+        } else if (cpfDigits.length > 11) {
+            showError("cpf", "CPF tem digitos a mais. Confira o numero.");
+            valid = false;
+            if (!firstError) firstError = "cpf";
+        } else if (!validarCPF(cpfDigits)) {
+            showError("cpf", "CPF invalido. Verifique os digitos.");
+            valid = false;
+            if (!firstError) firstError = "cpf";
+        }
+
+        // Nome
+        if (!name || name.split(" ").length < 2) {
+            showError("name", "Informe nome e sobrenome");
+            valid = false;
+            if (!firstError) firstError = "name";
+        }
+
+        // Telefone
+        const phoneDigits = phone.replace(/\D/g, "");
+        if (!phoneDigits || phoneDigits.length < 10) {
+            showError("phone", `Telefone deve ter 10 ou 11 digitos com DDD (${phoneDigits.length} informados)`);
+            valid = false;
+            if (!firstError) firstError = "phone";
+        } else if (phoneDigits.length > 11) {
+            showError("phone", "Telefone tem digitos a mais. Formato: (XX) XXXXX-XXXX");
+            valid = false;
+            if (!firstError) firstError = "phone";
+        }
+
+        // Scroll até o primeiro erro para ficar visível
+        if (firstError) {
+            const errorField = document.getElementById(`field-${firstError}`);
+            errorField?.scrollIntoView({ behavior: "smooth", block: "center" });
+            errorField?.focus();
+        }
+
+        if (valid) {
+            // Save user data for Advanced Matching (Meta pixel uses these on next events)
+            try {
+                const nameParts = name.trim().split(" ");
+                const userData = {
+                    em: email.trim().toLowerCase(),
+                    ph: "55" + phoneDigits,
+                    fn: nameParts[0].toLowerCase(),
+                    ln: nameParts.slice(1).join(" ").toLowerCase(),
+                };
+                localStorage.setItem("tess_user_data", JSON.stringify(userData));
+                // Update Advanced Matching for current session events
+                const vid = (window as any)._tessVid || localStorage.getItem("tess_vid") || "";
+                if (typeof (window as any).fbq === "function") {
+                    (window as any).fbq("init", (window as any)._fbPixelId || "", { ...userData, external_id: vid });
+                }
+            } catch (_) {}
+        }
+
+        return valid;
+    }
+
+    function validateStep2(): boolean {
+        hideAllErrors();
+        let valid = true;
+
+        const cep = (document.getElementById("field-cep") as HTMLInputElement)?.value;
+
+        // If autocomplete filled fields but address-fields is still hidden, show it
+        const addrFields = document.getElementById("address-fields");
+        if (addrFields?.classList.contains("hidden") && cep && cep.replace(/\D/g, "").length === 8) {
+            addrFields.classList.remove("hidden");
+        }
+
+        const rua = (document.getElementById("field-rua") as HTMLInputElement)?.value;
+        const numero = (document.getElementById("field-numero") as HTMLInputElement)?.value;
+        const bairro = (document.getElementById("field-bairro") as HTMLInputElement)?.value;
+        const cidade = (document.getElementById("field-cidade") as HTMLInputElement)?.value;
+        const estado = (document.getElementById("field-estado") as HTMLSelectElement)?.value;
+
+        if (!cep || cep.replace(/\D/g, "").length !== 8) {
+            showError("cep", "Informe um CEP valido (8 digitos)");
+            valid = false;
+        }
+        if (!rua || !rua.trim()) {
+            showError("rua", "Informe a rua");
+            valid = false;
+        }
+        if (!numero || !numero.trim()) {
+            showError("numero", "Informe o numero");
+            valid = false;
+        }
+        if (!bairro || !bairro.trim()) {
+            showError("bairro", "Informe o bairro");
+            valid = false;
+        }
+        if (!cidade || !cidade.trim()) {
+            showError("cidade", "Informe a cidade");
+            valid = false;
+        }
+        if (!estado) {
+            showError("estado", "Selecione o estado");
+            valid = false;
+        }
+
+        return valid;
+    }
+
+    // ── Finalizar Compra (PayPal Plus) ──
+    document.getElementById("btn-ppplus-pay")?.addEventListener("click", () => {
+        if (!ppplusRef) return;
+        const btn = document.getElementById("btn-ppplus-pay") as HTMLButtonElement;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading loading-spinner loading-sm"></span> Processando...';
+        try {
+            ppplusRef.doContinue();
+        } catch (err) {
+            btn.disabled = false;
+            btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Finalizar Compra';
+        }
+    });
+
+    // Prevent default form submit
+    document.getElementById("checkout-form")?.addEventListener("submit", (e) => {
+        e.preventDefault();
+    });
+
+    } // fim initCheckout
+
+    // Inicia com retry robusto
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initCheckout, { once: true });
+    } else {
+        setTimeout(initCheckout, 0);
+    }
+</script>

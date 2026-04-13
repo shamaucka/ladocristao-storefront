@@ -1,0 +1,326 @@
+---
+import { Icon } from "astro-icon/components";
+---
+
+<div class="bg-white rounded-2xl border border-slate-100 shadow-xs p-6 md:p-8 h-fit sticky top-36 space-y-6">
+    <!-- Header -->
+    <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white">
+            <Icon name="lucide:shopping-bag" class="w-5 h-5" />
+        </div>
+        <div>
+            <h2 class="text-lg font-black text-slate-950 uppercase italic tracking-tighter">
+                Resumo do Pedido
+            </h2>
+            <p id="summary-item-count" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">0 itens</p>
+        </div>
+    </div>
+
+    <!-- Cart Items -->
+    <div
+        id="checkout-items"
+        class="space-y-4 max-h-[280px] overflow-y-auto pr-1 custom-scrollbar"
+    >
+        <!-- Items injected by JS -->
+    </div>
+
+    <!-- Coupon Input -->
+    <div class="space-y-2">
+        <div class="flex gap-2">
+            <input
+                type="text"
+                id="coupon-input"
+                placeholder="Cupom de desconto"
+                class="input input-bordered input-sm flex-1 rounded-lg bg-slate-50 border-slate-200 focus:border-primary text-sm font-medium"
+            />
+            <button
+                type="button"
+                id="btn-apply-coupon"
+                class="btn btn-sm btn-outline border-slate-200 rounded-lg font-bold text-[10px] uppercase tracking-widest hover:bg-primary hover:border-primary hover:text-white cursor-pointer"
+            >
+                Aplicar
+            </button>
+        </div>
+        <p id="coupon-message" class="text-xs font-bold hidden"></p>
+    </div>
+
+    <!-- Totals -->
+    <div class="space-y-3 pt-4 border-t border-slate-100">
+        <div class="flex justify-between text-slate-500 font-bold text-xs uppercase tracking-widest">
+            <span>Subtotal</span>
+            <span id="checkout-subtotal">R$ 0</span>
+        </div>
+        <div class="flex justify-between text-slate-500 font-bold text-xs uppercase tracking-widest">
+            <span>Frete</span>
+            <span id="checkout-shipping" class="text-slate-400 italic">A calcular</span>
+        </div>
+        <p id="free-shipping-hint" class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest hidden">
+            Frete gratis em compras acima de R$150
+        </p>
+        <div
+            id="checkout-savings-container"
+            class="hidden justify-between text-emerald-600 font-black text-xs uppercase tracking-widest bg-emerald-50 p-2 rounded-lg"
+        >
+            <span>Economia</span>
+            <span id="checkout-savings">-R$ 0</span>
+        </div>
+        <div
+            id="checkout-coupon-container"
+            class="hidden justify-between text-zinc-900 font-black text-xs uppercase tracking-widest bg-zinc-100 p-2 rounded-lg"
+        >
+            <span>Cupom</span>
+            <span id="checkout-coupon-discount">-R$ 0</span>
+        </div>
+        <div class="flex justify-between items-center pt-4 mt-2 border-t-2 border-slate-100 border-dashed">
+            <span class="text-xl font-black text-slate-950 uppercase italic tracking-tighter">Total</span>
+            <span id="checkout-total" class="text-2xl font-black text-slate-950 italic">R$ 0</span>
+        </div>
+    </div>
+
+    <!-- Security badges -->
+    <div class="flex items-center gap-3 pt-2">
+        <div class="flex items-center gap-1 text-slate-400">
+            <Icon name="lucide:shield-check" class="w-4 h-4" />
+            <span class="text-[10px] font-bold uppercase tracking-widest">Compra Segura</span>
+        </div>
+        <div class="flex items-center gap-1 text-slate-400">
+            <Icon name="lucide:lock" class="w-4 h-4" />
+            <span class="text-[10px] font-bold uppercase tracking-widest">SSL</span>
+        </div>
+    </div>
+</div>
+
+<style is:global>
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #e2e8f0;
+        border-radius: 10px;
+    }
+</style>
+
+<script>
+    import { cartItems, totalPrice, totalSavings, isPromoActive } from "../../store/cartStore";
+    import { esc } from "../../lib/escapeHtml";
+
+    function initSummary() {
+    if (!document.getElementById("checkout-items")) {
+        setTimeout(initSummary, 100);
+        return;
+    }
+
+    const itemsContainer = document.getElementById("checkout-items");
+    const subtotalEl = document.getElementById("checkout-subtotal");
+    const totalEl = document.getElementById("checkout-total");
+    const savingsEl = document.getElementById("checkout-savings");
+    const savingsContainer = document.getElementById("checkout-savings-container");
+    const shippingEl = document.getElementById("checkout-shipping");
+    const itemCountEl = document.getElementById("summary-item-count");
+    const couponContainer = document.getElementById("checkout-coupon-container");
+    const couponDiscountEl = document.getElementById("checkout-coupon-discount");
+
+    const formatPrice = (price: number) =>
+        new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(price);
+
+    let shippingPrice = 0; // Zerado até CEP ser preenchido
+    let couponDiscount = 0;
+    const freeShippingMin = 150;
+
+    function updateTotal() {
+        const subtotal = totalPrice.get();
+        const total = Math.max(0, subtotal + shippingPrice - couponDiscount);
+        if (totalEl) totalEl.textContent = formatPrice(total);
+
+        // Also update mobile total
+        const mobileTotal = document.getElementById("mobile-total");
+        if (mobileTotal) mobileTotal.textContent = formatPrice(total);
+    }
+
+    const freeShippingHint = document.getElementById("free-shipping-hint");
+
+    // Listen for shipping changes
+    document.addEventListener("checkout:shipping-changed", ((e: CustomEvent) => {
+        shippingPrice = e.detail.price;
+        const isFree = e.detail.free || shippingPrice === 0;
+        const isPending = e.detail.pending;
+        if (shippingEl) {
+            if (isPending) {
+                shippingEl.textContent = "A calcular";
+                shippingEl.classList.remove("text-emerald-600", "text-slate-950");
+                shippingEl.classList.add("text-slate-400", "italic");
+            } else if (isFree) {
+                shippingEl.textContent = "GRÁTIS";
+                shippingEl.classList.remove("text-slate-950", "text-slate-400", "italic");
+                shippingEl.classList.add("text-emerald-600");
+            } else {
+                shippingEl.textContent = formatPrice(shippingPrice);
+                shippingEl.classList.remove("text-emerald-600", "text-slate-400", "italic");
+                shippingEl.classList.add("text-slate-950");
+            }
+        }
+        updateTotal();
+    }) as EventListener);
+
+    // Show/hide free shipping hint based on subtotal
+    totalPrice.subscribe((price) => {
+        if (!freeShippingHint) return;
+        if (price > 0 && price < freeShippingMin) {
+            freeShippingHint.classList.remove("hidden");
+        } else {
+            freeShippingHint.classList.add("hidden");
+        }
+    });
+
+    // Cart items rendering
+    const PROMO_PRICE = 75;
+    cartItems.subscribe((items) => {
+        if (!itemsContainer) return;
+
+        const count = items.reduce((sum, i) => sum + i.quantity, 0);
+        if (itemCountEl) itemCountEl.textContent = `${count} ${count === 1 ? "item" : "itens"}`;
+
+        if (items.length === 0) {
+            itemsContainer.innerHTML = `<p class="text-slate-400 font-medium italic text-sm">Seu carrinho esta vazio.</p>`;
+            return;
+        }
+
+        const promo = isPromoActive(items);
+
+        itemsContainer.innerHTML = items
+            .map(
+                (item) => {
+                    const unitPrice = promo ? PROMO_PRICE : item.price * (1 - (item.discount || 0) / 100);
+                    const lineTotal = unitPrice * item.quantity;
+                    const originalTotal = item.price * item.quantity;
+                    const hasDiscount = promo && item.price > PROMO_PRICE;
+
+                    return `
+            <div class="flex gap-3 group">
+                <div class="w-14 h-14 bg-slate-100 rounded-lg overflow-hidden shrink-0">
+                    <img src="${esc(item.image)}" alt="${esc(item.name)}" class="w-full h-full object-cover" loading="lazy" />
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h4 class="text-xs font-black text-slate-950 uppercase italic truncate tracking-tight leading-tight">
+                        ${esc(item.name)}
+                    </h4>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Qtd: ${item.quantity}${promo ? ' · Promo 2 por R$150' : ''}</p>
+                </div>
+                <div class="text-right whitespace-nowrap">
+                    ${hasDiscount ? `<span class="text-[10px] text-slate-300 line-through block">${formatPrice(originalTotal)}</span>` : ''}
+                    <span class="text-sm font-black text-slate-950 italic">${formatPrice(lineTotal)}</span>
+                </div>
+            </div>
+        `;
+                }
+            )
+            .join("");
+    });
+
+    // Subtotal
+    totalPrice.subscribe((price) => {
+        if (subtotalEl) subtotalEl.textContent = formatPrice(price);
+        updateTotal();
+    });
+
+    // Savings
+    totalSavings.subscribe((savings) => {
+        if (!savingsEl || !savingsContainer) return;
+        if (savings > 0) {
+            savingsContainer.classList.remove("hidden");
+            savingsContainer.classList.add("flex");
+            savingsEl.textContent = `-${formatPrice(savings)}`;
+        } else {
+            savingsContainer.classList.add("hidden");
+            savingsContainer.classList.remove("flex");
+        }
+    });
+
+    // Coupon logic
+    const couponInput = document.getElementById("coupon-input") as HTMLInputElement;
+    const couponBtn = document.getElementById("btn-apply-coupon");
+    const couponMsg = document.getElementById("coupon-message");
+
+    couponBtn?.addEventListener("click", async () => {
+        const code = couponInput?.value.trim().toUpperCase();
+        if (!code) return;
+
+        if (couponMsg) {
+            couponMsg.classList.remove("hidden", "text-red-500", "text-emerald-600");
+            couponMsg.textContent = "Verificando...";
+            couponMsg.classList.add("text-slate-500");
+        }
+
+        try {
+            const res = await fetch(`/api/store/promotions?code=${encodeURIComponent(code)}`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.discount) {
+                    couponDiscount = totalPrice.get() * (data.discount / 100);
+                    if (couponMsg) {
+                        couponMsg.textContent = `Cupom "${code}" aplicado! ${data.discount}% de desconto`;
+                        couponMsg.classList.remove("text-slate-500", "text-red-500");
+                        couponMsg.classList.add("text-emerald-600");
+                    }
+                    if (couponContainer && couponDiscountEl) {
+                        couponContainer.classList.remove("hidden");
+                        couponContainer.classList.add("flex");
+                        couponDiscountEl.textContent = `-${formatPrice(couponDiscount)}`;
+                    }
+                    updateTotal();
+                    return;
+                }
+            }
+            // If not found or invalid
+            couponDiscount = 0;
+            if (couponMsg) {
+                couponMsg.textContent = "Cupom invalido ou expirado";
+                couponMsg.classList.remove("text-slate-500", "text-emerald-600");
+                couponMsg.classList.add("text-red-500");
+            }
+            if (couponContainer) {
+                couponContainer.classList.add("hidden");
+                couponContainer.classList.remove("flex");
+            }
+            updateTotal();
+        } catch {
+            // API not found - mock a discount for demo
+            if (code === "DESCONTO10" || code === "PRIMEIRA") {
+                couponDiscount = totalPrice.get() * 0.10;
+                if (couponMsg) {
+                    couponMsg.textContent = `Cupom "${code}" aplicado! 10% de desconto`;
+                    couponMsg.classList.remove("text-slate-500", "text-red-500");
+                    couponMsg.classList.add("text-emerald-600");
+                }
+                if (couponContainer && couponDiscountEl) {
+                    couponContainer.classList.remove("hidden");
+                    couponContainer.classList.add("flex");
+                    couponDiscountEl.textContent = `-${formatPrice(couponDiscount)}`;
+                }
+            } else {
+                couponDiscount = 0;
+                if (couponMsg) {
+                    couponMsg.textContent = "Cupom invalido ou expirado";
+                    couponMsg.classList.remove("text-slate-500", "text-emerald-600");
+                    couponMsg.classList.add("text-red-500");
+                }
+                if (couponContainer) {
+                    couponContainer.classList.add("hidden");
+                    couponContainer.classList.remove("flex");
+                }
+            }
+            updateTotal();
+        }
+    });
+
+    } // fim initSummary
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initSummary, { once: true });
+    } else {
+        setTimeout(initSummary, 0);
+    }
+</script>

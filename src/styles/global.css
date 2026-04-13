@@ -1,0 +1,141 @@
+@import "tailwindcss";
+@plugin "daisyui";
+
+/* ===== ITC AVANT GARDE GOTHIC PRO ===== */
+@font-face {
+  font-family: 'AvantGarde';
+  src: url('/fonts/avantgarde/AvantGarde-XLight.otf') format('opentype');
+  font-weight: 100 200;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'AvantGarde';
+  src: url('/fonts/avantgarde/AvantGarde-Book.otf') format('opentype');
+  font-weight: 300 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'AvantGarde';
+  src: url('/fonts/avantgarde/AvantGarde-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'AvantGarde';
+  src: url('/fonts/avantgarde/AvantGarde-Demi.otf') format('opentype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'AvantGarde';
+  src: url('/fonts/avantgarde/AvantGarde-Bold.otf') format('opentype');
+  font-weight: 700 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ===== Typography — tudo ITC Avant Garde ===== */
+* {
+  font-family: 'AvantGarde', 'Century Gothic', 'Futura', sans-serif !important;
+}
+
+h1, h2, h3, h4, h5, h6,
+.font-heading {
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+
+button, a, input, select, textarea, label, span, p, div, li {
+  font-family: 'AvantGarde', 'Century Gothic', 'Futura', sans-serif !important;
+}
+
+/* Rosa Theme - force ALL DaisyUI colors */
+:root,
+[data-theme="light"] {
+  --p: 340 82% 52%;        /* primary: rosa */
+  --pf: 340 82% 42%;       /* primary-focus: rosa escuro */
+  --pc: 0 0% 100%;         /* primary-content: branco */
+  --s: 340 60% 40%;        /* secondary: rosa escuro */
+  --sf: 340 60% 30%;       /* secondary-focus */
+  --sc: 0 0% 100%;         /* secondary-content: branco */
+  --a: 340 70% 45%;        /* accent: rosa medio */
+  --af: 340 70% 35%;       /* accent-focus */
+  --ac: 0 0% 100%;         /* accent-content: branco */
+  --n: 340 30% 20%;        /* neutral: rosa escuro */
+  --nf: 340 30% 30%;       /* neutral-focus */
+  --nc: 0 0% 100%;         /* neutral-content: branco */
+  --b1: 0 0% 100%;         /* base-100: branco */
+  --b2: 340 20% 97%;       /* base-200: off-white rosado */
+  --b3: 340 15% 93%;       /* base-300: rosa claro */
+  --bc: 340 30% 15%;       /* base-content: escuro */
+  --in: 340 40% 50%;       /* info */
+  --inc: 0 0% 100%;
+  --su: 160 60% 40%;       /* success: verde */
+  --suc: 0 0% 100%;
+  --wa: 40 80% 50%;        /* warning: amarelo */
+  --wac: 0 0% 100%;
+  --er: 0 80% 40%;         /* error: vermelho */
+  --erc: 0 0% 100%;
+  --rounded-btn: 0.25rem;
+  --rounded-badge: 0.25rem;
+  --animation-btn: 0.15s;
+}
+
+/* Override any remaining accents - Rosa */
+.badge-primary,
+.btn-primary,
+.bg-primary {
+  background-color: #d63384 !important;
+  border-color: #d63384 !important;
+  color: #fff !important;
+}
+
+.text-primary {
+  color: #d63384 !important;
+}
+
+.border-primary {
+  border-color: #d63384 !important;
+}
+
+.bg-primary\/5 {
+  background-color: rgba(214,51,132,0.05) !important;
+}
+
+.bg-primary\/10,
+.hover\:bg-primary\/10:hover {
+  background-color: rgba(214,51,132,0.1) !important;
+}
+
+.text-primary-content {
+  color: #fff !important;
+}
+
+.shadow-primary\/20 {
+  --tw-shadow-color: rgba(214,51,132,0.2);
+}
+
+/* Radio/checkbox accent */
+.radio-primary:checked {
+  border-color: #d63384 !important;
+  background-color: #d63384 !important;
+}
+
+/* Links bar - force rosa background */
+.bg-primary.text-primary-content {
+  background-color: #d63384 !important;
+  color: #fff !important;
+}
+
+/* Gradient text removal - use solid rosa */
+.gradient-text {
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: #d63384 !important;
+  background-clip: unset !important;
+  color: #d63384 !important;
+}

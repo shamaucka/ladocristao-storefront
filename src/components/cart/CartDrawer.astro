@@ -1,0 +1,333 @@
+---
+import { Icon } from "astro-icon/components";
+---
+
+<div id="cart-drawer-wrapper" class="relative z-9999">
+    <!-- Overlay -->
+    <div
+        id="cart-overlay"
+        class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-9998 opacity-0 pointer-events-none transition-opacity duration-500 ease-out"
+    >
+    </div>
+
+    <!-- Drawer -->
+    <div
+        id="cart-drawer"
+        class="fixed top-0 right-0 h-full w-full max-w-sm bg-white shadow-[-30px_0_60px_rgba(0,0,0,0.15)] z-9999 flex flex-col translate-x-full transition-transform duration-500 cubic-bezier(0.16, 1, 0.3, 1)"
+    >
+        <!-- Header -->
+        <div class="px-6 py-5 flex items-center justify-between border-b border-slate-100">
+            <div>
+                <h2 class="text-[10px] font-bold text-slate-950 uppercase tracking-[0.25em] leading-none">Carrinho</h2>
+                <span
+                    id="cart-count-badge"
+                    class="hidden text-[9px] text-slate-400 font-medium tracking-widest mt-0.5 block"
+                >
+                    0 itens
+                </span>
+            </div>
+            <button
+                id="close-cart"
+                aria-label="Fechar carrinho"
+                class="text-slate-300 hover:text-slate-950 transition-colors cursor-pointer"
+            >
+                <Icon name="lucide:x" class="w-4 h-4" />
+            </button>
+        </div>
+
+        <!-- Content -->
+        <div
+            id="cart-items-container"
+            class="flex-1 overflow-y-auto custom-scrollbar"
+        >
+            <!-- Empty State -->
+            <div
+                id="empty-cart-state"
+                class="hidden h-full flex-col items-center justify-center gap-6 text-center px-8"
+            >
+                <p class="text-xs text-slate-400 uppercase tracking-widest">Seu carrinho esta vazio</p>
+                <button
+                    id="go-to-catalog"
+                    class="text-[10px] font-bold text-slate-950 uppercase tracking-widest underline underline-offset-4 cursor-pointer hover:text-slate-500 transition-colors"
+                >
+                    Ver colecao
+                </button>
+            </div>
+
+            <!-- Items List -->
+            <div id="cart-items-list" class="divide-y divide-slate-100">
+                <!-- Items will be injected here -->
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div
+            id="cart-footer"
+            class="hidden border-t border-slate-100 bg-white"
+        >
+            <div class="px-6 py-4 space-y-2.5">
+                <div class="flex items-center justify-between">
+                    <span class="text-[10px] text-slate-400 uppercase tracking-widest font-medium">Frete</span>
+                    <span class="text-[10px] text-emerald-600 uppercase tracking-widest font-bold">Gratis</span>
+                </div>
+                <div
+                    id="total-savings-container"
+                    class="hidden items-center justify-between"
+                >
+                    <span class="text-[10px] text-emerald-600 uppercase tracking-widest font-medium">Economia</span>
+                    <span id="total-savings-value" class="text-[10px] text-emerald-600 font-bold">- R$ 0</span>
+                </div>
+                <div class="flex items-center justify-between pt-2.5 border-t border-slate-100">
+                    <span class="text-[10px] text-slate-950 uppercase tracking-widest font-bold">Total</span>
+                    <span id="total-price-value" class="text-base font-bold text-slate-950">R$ 0</span>
+                </div>
+            </div>
+
+            <div class="px-6 pb-6">
+                <button
+                    id="checkout-btn"
+                    class="w-full bg-slate-950 text-white py-4 font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-slate-800 transition-colors flex items-center justify-center gap-3 group cursor-pointer"
+                >
+                    Finalizar Compra
+                    <Icon
+                        name="lucide:arrow-right"
+                        class="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform"
+                    />
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style is:global>
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #e2e8f0;
+        border-radius: 10px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #cbd5e1;
+    }
+
+    .cubic-bezier {
+        transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+</style>
+
+<script>
+    import {
+        isCartOpen,
+        cartItems,
+        toggleCart,
+        removeFromCart,
+        updateQuantity,
+        clearCart,
+        totalPrice,
+        totalSavings,
+        totalItems,
+    } from "../../store/cartStore";
+    import { toast } from "sonner";
+    import { esc } from "../../lib/escapeHtml";
+    import { trackMetaAddToCart, trackTikTokAddToCart, trackGoogleAddToCart } from "../../lib/tracking";
+
+    function initCartDrawer() {
+    // Wait for DOM to be ready
+    if (!document.getElementById("cart-drawer")) {
+        setTimeout(initCartDrawer, 50);
+        return;
+    }
+
+    // Track AddToCart — initialize with current cart to avoid firing on page load
+    let _prevCartItems: any[] = cartItems.get().map(i => ({ ...i }));
+
+    const overlay = document.getElementById("cart-overlay");
+    const drawer = document.getElementById("cart-drawer");
+    const closeBtn = document.getElementById("close-cart");
+    const itemsList = document.getElementById("cart-items-list");
+    const emptyState = document.getElementById("empty-cart-state");
+    const footer = document.getElementById("cart-footer");
+    const cartCountBadge = document.getElementById("cart-count-badge");
+    const totalPriceValue = document.getElementById("total-price-value");
+    const totalSavingsContainer = document.getElementById(
+        "total-savings-container",
+    );
+    const totalSavingsValue = document.getElementById("total-savings-value");
+    const clearCartBtn = document.getElementById("clear-cart-btn");
+    const checkoutBtn = document.getElementById("checkout-btn");
+    const goToCatalogBtn = document.getElementById("go-to-catalog");
+
+    function formatPrice(price: number) {
+        return new Intl.NumberFormat("pt-BR", {
+            style: "currency",
+            currency: "BRL",
+        }).format(price);
+    }
+
+    // Subscribe to cart open state
+    isCartOpen.subscribe((isOpen) => {
+        if (isOpen) {
+            overlay?.classList.remove("opacity-0", "pointer-events-none");
+            overlay?.classList.add("opacity-100");
+            drawer?.classList.remove("translate-x-full");
+        } else {
+            overlay?.classList.add("opacity-0", "pointer-events-none");
+            overlay?.classList.remove("opacity-100");
+            drawer?.classList.add("translate-x-full");
+        }
+    });
+
+    // Subscribe to cart items
+    cartItems.subscribe((items) => {
+        // Detect newly added/increased items and fire AddToCart pixel
+        try {
+            items.forEach(item => {
+                const prev = _prevCartItems.find(p => p.id === item.id);
+                const addedQty = prev ? item.quantity - prev.quantity : item.quantity;
+                // Only fire if quantity INCREASED (not on remove/load)
+                if (addedQty > 0 && !(window as any).__pxFiredAddToCart?.[item.id + item.quantity]) {
+                    if (!(window as any).__pxFiredAddToCart) (window as any).__pxFiredAddToCart = {};
+                    (window as any).__pxFiredAddToCart[item.id + item.quantity] = true;
+                    trackMetaAddToCart({ id: item.id, name: item.name, price: item.price, quantity: addedQty });
+                    trackTikTokAddToCart({ id: item.id, name: item.name, price: item.price, quantity: addedQty });
+                    trackGoogleAddToCart({ id: item.id, name: item.name, price: item.price, quantity: addedQty });
+                }
+            });
+        } catch (e) {}
+        _prevCartItems = items.map(i => ({ ...i }));
+
+        if (!itemsList || !emptyState || !footer || !cartCountBadge) return;
+
+        if (items.length === 0) {
+            emptyState.classList.remove("hidden");
+            itemsList.innerHTML = "";
+            footer.classList.add("hidden");
+            cartCountBadge.classList.add("hidden");
+        } else {
+            emptyState.classList.add("hidden");
+            footer.classList.remove("hidden");
+            cartCountBadge.classList.remove("hidden");
+            const qty = items.reduce((acc, item) => acc + item.quantity, 0);
+            cartCountBadge.textContent = `${qty} ${qty === 1 ? "item" : "itens"}`;
+
+            itemsList.innerHTML = items
+                .map(
+                    (item) => `
+                <div class="flex gap-4 px-6 py-4 group" data-id="${esc(item.id)}">
+                    <div class="w-16 h-16 bg-slate-50 overflow-hidden shrink-0">
+                        <img src="${esc(item.image)}" alt="${esc(item.name)}" class="w-full h-full object-cover" />
+                    </div>
+
+                    <div class="flex-1 flex flex-col justify-between min-w-0">
+                        <div class="flex items-start justify-between gap-2">
+                            <h4 class="text-[10px] font-medium text-slate-700 uppercase tracking-wider leading-snug line-clamp-2 flex-1">
+                                ${esc(item.name)}
+                            </h4>
+                            <button class="remove-item text-slate-200 hover:text-slate-500 transition-colors cursor-pointer shrink-0" data-id="${item.id}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </button>
+                        </div>
+
+                        <div class="flex items-center justify-between mt-3">
+                            <div class="flex items-center gap-3 text-[10px] text-slate-400">
+                                <button class="decrease-qty hover:text-slate-950 transition-colors cursor-pointer disabled:opacity-30" data-id="${item.id}">−</button>
+                                <span class="font-medium text-slate-700">${item.quantity}</span>
+                                <button class="increase-qty hover:text-slate-950 transition-colors cursor-pointer disabled:opacity-30" data-id="${item.id}" ${item.stock !== undefined && item.quantity >= item.stock ? "disabled" : ""}>+</button>
+                            </div>
+                            <div class="text-right cart-item-price" data-id="${item.id}" data-original="${item.price}" data-qty="${item.quantity}">
+                                ${item.discount ? `<p class="text-[9px] text-slate-300 line-through">${formatPrice(item.price * item.quantity)}</p>` : ""}
+                                <p class="text-xs font-semibold text-slate-950">
+                                    ${formatPrice(item.price * (1 - (item.discount || 0) / 100) * item.quantity)}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
+                )
+                .join("");
+
+            // Add event listeners for buttons
+            document.querySelectorAll(".remove-item").forEach((btn) => {
+                btn.addEventListener("click", () =>
+                    removeFromCart(btn.getAttribute("data-id") || ""),
+                );
+            });
+            document.querySelectorAll(".decrease-qty").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    const id = btn.getAttribute("data-id") || "";
+                    const item = items.find((i) => i.id === id);
+                    if (item) updateQuantity(id, item.quantity - 1);
+                });
+            });
+            document.querySelectorAll(".increase-qty").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    const id = btn.getAttribute("data-id") || "";
+                    const item = items.find((i) => i.id === id);
+                    if (item) {
+                        const result = updateQuantity(id, item.quantity + 1);
+                        if (!result.success) {
+                            toast.error(result.message);
+                        }
+                    }
+                });
+            });
+        }
+    });
+
+    // totalPrice e totalSavings do store ja incluem a promo "2 por R$75 cada"
+    totalPrice.subscribe((price) => {
+        if (totalPriceValue) totalPriceValue.textContent = formatPrice(price);
+    });
+
+    totalSavings.subscribe((savings) => {
+        if (!totalSavingsContainer || !totalSavingsValue) return;
+        if (savings > 0) {
+            totalSavingsContainer.classList.remove("hidden");
+            totalSavingsValue.textContent = `- ${formatPrice(savings)}`;
+        } else {
+            totalSavingsContainer.classList.add("hidden");
+        }
+    });
+
+    // Atualiza precos individuais quando cart muda (promo via isPromoActive do store)
+    cartItems.subscribe((items) => {
+        const promoActive = items.reduce((s, i) => s + i.quantity, 0) >= 2;
+        const PROMO_EACH = 75;
+
+        document.querySelectorAll(".cart-item-price").forEach((el) => {
+            const origPrice = parseFloat(el.getAttribute("data-original") || "0");
+            const qty = parseInt(el.getAttribute("data-qty") || "1");
+            if (promoActive) {
+                el.innerHTML = `
+                    <p class="text-[9px] text-slate-300 line-through">${formatPrice(origPrice * qty)}</p>
+                    <p class="text-xs font-semibold text-slate-950">${formatPrice(PROMO_EACH * qty)}</p>
+                `;
+            } else {
+                el.innerHTML = `<p class="text-xs font-semibold text-slate-950">${formatPrice(origPrice * qty)}</p>`;
+            }
+        });
+    });
+
+    // Control buttons
+    closeBtn?.addEventListener("click", toggleCart);
+    overlay?.addEventListener("click", toggleCart);
+    clearCartBtn?.addEventListener("click", clearCart);
+    goToCatalogBtn?.addEventListener("click", toggleCart);
+    checkoutBtn?.addEventListener("click", () => {
+        toggleCart();
+        window.location.href = "/checkout";
+    });
+
+    } // fim initCartDrawer
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initCartDrawer, { once: true });
+    } else {
+        setTimeout(initCartDrawer, 0);
+    }
+</script>

@@ -1,0 +1,76 @@
+---
+interface Props {
+    currentPage: number;
+    totalPages: number;
+    baseUrl?: string;
+}
+
+const { currentPage, totalPages, baseUrl } = Astro.props;
+
+const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+---
+
+{/* Pagination Component */}
+
+{/* Overwriting with the Home-page style (Page numbers included) */}
+<div class="join">
+    {
+        baseUrl ? (
+            <>
+                <a
+                    href={
+                        currentPage > 1
+                            ? `${baseUrl}?page=${currentPage - 1}`
+                            : "#"
+                    }
+                    class={`join-item btn ${currentPage === 1 ? "btn-disabled" : ""}`}
+                >
+                    «
+                </a>
+                {pages.map((page) => (
+                    <a
+                        href={`${baseUrl}?page=${page}`}
+                        class={`join-item btn ${currentPage === page ? "btn-active" : ""}`}
+                    >
+                        {page}
+                    </a>
+                ))}
+                <a
+                    href={
+                        currentPage < totalPages
+                            ? `${baseUrl}?page=${currentPage + 1}`
+                            : "#"
+                    }
+                    class={`join-item btn ${currentPage === totalPages ? "btn-disabled" : ""}`}
+                >
+                    »
+                </a>
+            </>
+        ) : (
+            <>
+                <button
+                    class="join-item btn pagination-btn"
+                    data-page={currentPage - 1}
+                    disabled={currentPage === 1}
+                >
+                    «
+                </button>
+                {pages.map((page) => (
+                    <button
+                        class={`join-item btn pagination-btn ${currentPage === page ? "btn-active" : ""}`}
+                        data-page={page}
+                    >
+                        {page}
+                    </button>
+                ))}
+                <button
+                    class="join-item btn pagination-btn"
+                    data-page={currentPage + 1}
+                    disabled={currentPage === totalPages}
+                >
+                    »
+                </button>
+            </>
+        )
+    }
+</div>

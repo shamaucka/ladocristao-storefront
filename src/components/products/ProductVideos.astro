@@ -1,0 +1,209 @@
+---
+const CDN = "https://cdn.ladocristao.com.br"
+const posterTransform = `${CDN}/video/upload/so_1,f_jpg,q_auto,w_300,h_533,c_fill`
+const videoTransform = `${CDN}/video/upload/q_auto`
+const videos = [
+    { src: `${videoTransform}/tess/videos/inspire-1.mp4`, poster: `${posterTransform}/tess/videos/inspire-1.jpg`, label: "Sala de estar" },
+    { src: `${videoTransform}/tess/videos/inspire-2.mp4`, poster: `${posterTransform}/tess/videos/inspire-2.jpg`, label: "Quarto" },
+    { src: `${videoTransform}/tess/videos/inspire-3.mp4`, poster: `${posterTransform}/tess/videos/inspire-3.jpg`, label: "Sala de jantar" },
+    { src: `${videoTransform}/tess/videos/inspire-4.mp4`, poster: `${posterTransform}/tess/videos/inspire-4.jpg`, label: "Escritório" },
+]
+
+// Brand video comprimido pelo CDN
+const brandPoster = `${CDN}/video/upload/so_3,f_jpg,q_auto,w_1280/tess/videos/ladocristao-brand.jpg`
+const brandVideoDesktop = `${CDN}/video/upload/q_auto,w_1280/tess/videos/ladocristao-brand.mp4`
+const brandVideoMobile = `${CDN}/video/upload/q_auto,w_640/tess/videos/ladocristao-brand.mp4`
+---
+
+<!-- ===== Inspire-se: carrossel videos 9:16 ===== -->
+<section class="mt-12 pt-10" id="inspire-section">
+    <div class="mb-8">
+        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Inspiração</p>
+        <h2 class="text-3xl font-black text-slate-950 uppercase tracking-tighter leading-none">
+            Inspire-se com<br class="hidden md:block"/> nossas clientes
+        </h2>
+    </div>
+
+    <div
+        class="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 scrollbar-hide"
+        id="video-carousel"
+        style="-webkit-overflow-scrolling: touch;"
+    >
+        {videos.map((v) => (
+            <div
+                class="flex-none snap-start relative overflow-hidden bg-slate-950 group cursor-pointer"
+                style="width: 260px; aspect-ratio: 9/16;"
+                data-video-container
+            >
+                <video
+                    muted
+                    loop
+                    playsinline
+                    preload="none"
+                    poster={v.poster}
+                    class="w-full h-full object-cover"
+                    data-hover-video
+                    data-src={v.src}
+                />
+                <div class="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors duration-300 flex items-end p-4 pointer-events-none">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-white/80">{v.label}</span>
+                </div>
+                <div class="absolute inset-0 flex items-center justify-center pointer-events-none transition-opacity duration-200" data-play-icon>
+                    <div class="w-12 h-12 rounded-full bg-white/70 backdrop-blur-sm flex items-center justify-center">
+                        <svg class="w-5 h-5 text-slate-800 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        ))}
+    </div>
+</section>
+
+<!-- ===== Brand video: ladocristao_1 ===== -->
+<section class="mt-10" id="brand-video-section">
+    <div class="relative w-full overflow-hidden bg-slate-950">
+        <video
+            id="brand-video"
+            muted
+            loop
+            playsinline
+            preload="none"
+            poster={brandPoster}
+            class="w-full h-auto"
+            data-src-desktop={brandVideoDesktop}
+            data-src-mobile={brandVideoMobile}
+        >
+        </video>
+        <!-- Overlay com texto -->
+        <div class="absolute inset-0 flex items-end justify-start p-6 md:p-10 pointer-events-none">
+            <div class="bg-white/10 backdrop-blur-sm border border-white/20 px-5 py-3 max-w-sm">
+                <p class="text-[10px] font-black uppercase tracking-widest text-white/60 mb-1">Artesanal desde o início</p>
+                <p class="text-lg md:text-xl font-black text-white uppercase tracking-tighter leading-tight">Qualidade que<br/>você consegue sentir</p>
+            </div>
+        </div>
+        <!-- Play/pause overlay -->
+        <button class="absolute inset-0 flex items-center justify-center cursor-pointer bg-transparent border-none" id="brand-video-toggle" aria-label="Reproduzir vídeo">
+            <div class="w-16 h-16 rounded-full bg-white/60 backdrop-blur-sm flex items-center justify-center transition-opacity" id="brand-play-icon">
+                <svg class="w-7 h-7 text-slate-800 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z"/>
+                </svg>
+            </div>
+        </button>
+    </div>
+</section>
+
+<style is:global>
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
+
+<script>
+    function initVideos() {
+        const isMobile = window.matchMedia("(max-width: 768px)").matches;
+        const isTouch = "ontouchstart" in window;
+
+        // === Lazy load all videos when near viewport ===
+        const lazyObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting) return;
+                const video = entry.target as HTMLVideoElement;
+                const src = video.getAttribute("data-src");
+                if (src && !video.src) video.src = src;
+                lazyObserver.unobserve(video);
+            });
+        }, { rootMargin: "300px" });
+
+        document.querySelectorAll<HTMLVideoElement>("[data-hover-video]").forEach((v) => lazyObserver.observe(v));
+
+        // === Carousel videos: click to toggle, hover on desktop ===
+        document.querySelectorAll("[data-video-container]").forEach((container) => {
+            const video = container.querySelector("video") as HTMLVideoElement;
+            const playIcon = container.querySelector("[data-play-icon]") as HTMLElement;
+            if (!video) return;
+            let playing = false;
+
+            const loadAndPlay = () => {
+                if (!video.src) {
+                    const s = video.getAttribute("data-src");
+                    if (s) video.src = s;
+                }
+                video.play().catch(() => {});
+                if (playIcon) playIcon.style.opacity = "0";
+                playing = true;
+            };
+
+            const stop = () => {
+                video.pause();
+                video.currentTime = 0;
+                if (playIcon) playIcon.style.opacity = "1";
+                playing = false;
+            };
+
+            // Click/tap: toggle play/pause
+            container.addEventListener("click", () => {
+                if (playing) { stop(); } else { loadAndPlay(); }
+            });
+
+            // Desktop hover: play on enter, pause on leave
+            if (!isTouch) {
+                container.addEventListener("mouseenter", loadAndPlay);
+                container.addEventListener("mouseleave", stop);
+            }
+        });
+
+        // === Brand video: lazy load + click to play ===
+        const brandVideo = document.getElementById("brand-video") as HTMLVideoElement;
+        const brandToggle = document.getElementById("brand-video-toggle");
+        const brandPlayIcon = document.getElementById("brand-play-icon");
+        if (brandVideo) {
+            // Choose src based on screen size
+            const srcAttr = isMobile ? "data-src-mobile" : "data-src-desktop";
+            const brandSrc = brandVideo.getAttribute(srcAttr);
+
+            // Lazy load brand video
+            const brandObserver = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting && brandSrc && !brandVideo.src) {
+                        brandVideo.src = brandSrc;
+                        brandObserver.unobserve(brandVideo);
+                    }
+                });
+            }, { rootMargin: "300px" });
+            brandObserver.observe(brandVideo);
+
+            // Autoplay when visible
+            const playObserver = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting && brandVideo.src) {
+                        brandVideo.play().catch(() => {});
+                        if (brandPlayIcon) brandPlayIcon.style.opacity = "0";
+                    } else {
+                        brandVideo.pause();
+                    }
+                });
+            }, { threshold: 0.3 });
+            playObserver.observe(brandVideo);
+
+            // Click toggle
+            let brandPlaying = false;
+            brandToggle?.addEventListener("click", () => {
+                if (!brandVideo.src && brandSrc) brandVideo.src = brandSrc;
+                if (brandPlaying) {
+                    brandVideo.pause();
+                    if (brandPlayIcon) brandPlayIcon.style.opacity = "1";
+                    brandPlaying = false;
+                } else {
+                    brandVideo.play().catch(() => {});
+                    if (brandPlayIcon) brandPlayIcon.style.opacity = "0";
+                    brandPlaying = true;
+                }
+            });
+
+            brandVideo.addEventListener("play", () => { brandPlaying = true; });
+            brandVideo.addEventListener("pause", () => { brandPlaying = false; });
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", initVideos);
+</script>

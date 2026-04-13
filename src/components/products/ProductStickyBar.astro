@@ -1,0 +1,88 @@
+---
+interface Props {
+    product: {
+        name: string;
+        price: number;
+        discount?: number;
+        stock: number;
+    };
+}
+
+const { product } = Astro.props;
+const discountedPrice = product.price * (1 - (product.discount || 0) / 100);
+---
+
+<div
+    id="sticky-bar"
+    class="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200 shadow-[0_-4px_20px_rgba(0,0,0,0.12)] translate-y-full transition-transform duration-300 md:hidden"
+    aria-hidden="true"
+>
+    <div class="px-4 py-3 flex items-center gap-3">
+        <div class="flex-1 min-w-0">
+            <p class="text-[11px] text-slate-500 truncate leading-none mb-1">{product.name}</p>
+            <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-base font-black text-slate-900">
+                    R$ {discountedPrice.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+                {product.discount && product.discount > 0 && (
+                    <span class="text-[11px] text-slate-400 line-through">
+                        R$ {product.price.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
+                )}
+                <span class="text-[9px] font-black bg-slate-950 text-white px-1.5 py-0.5 uppercase tracking-wide">
+                    2 por R$150
+                </span>
+            </div>
+            <p class="text-[10px] font-black text-green-600 uppercase tracking-wider mt-0.5">Acaba logo!</p>
+        </div>
+        <button
+            id="sticky-add-to-cart"
+            class="flex-shrink-0 bg-slate-950 text-white text-[11px] font-black uppercase tracking-widest px-5 py-3 active:scale-[0.97] transition-transform disabled:opacity-40"
+            disabled={product.stock <= 0}
+        >
+            {product.stock <= 0 ? "Esgotado" : "Comprar"}
+        </button>
+    </div>
+</div>
+
+<script>
+    import { addToCart, openCart } from "../../store/cartStore";
+    import { toast } from "sonner";
+
+    function initStickyBar() {
+        const bar = document.getElementById("sticky-bar");
+        const mainBtn = document.getElementById("add-to-cart-btn");
+        const stickyBtn = document.getElementById("sticky-add-to-cart");
+        if (!bar || !mainBtn) return;
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (!entry.isIntersecting) {
+                    bar.classList.remove("translate-y-full");
+                    bar.setAttribute("aria-hidden", "false");
+                } else {
+                    bar.classList.add("translate-y-full");
+                    bar.setAttribute("aria-hidden", "true");
+                }
+            },
+            { threshold: 0, rootMargin: "0px 0px -60px 0px" }
+        );
+        observer.observe(mainBtn);
+
+        // Adiciona direto ao carrinho (sem clicar no botão principal)
+        stickyBtn?.addEventListener("click", () => {
+            const productInfo = document.querySelector(".product-info");
+            if (!productInfo) return;
+            const product = JSON.parse(productInfo.getAttribute("data-product") || "{}");
+            const result = addToCart(product, 1);
+            if (result.success) {
+                toast.success(result.message);
+                openCart();
+            } else {
+                toast.error(result.message);
+            }
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", initStickyBar);
+</script>
