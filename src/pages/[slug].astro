@@ -2,9 +2,6 @@
 import Layout from "../layouts/Layout.astro";
 import ProductGallery from "../components/products/ProductGallery.astro";
 import ProductInfo from "../components/products/ProductInfo.astro";
-import ProductFeatures from "../components/products/ProductFeatures.astro";
-import ProductVideos from "../components/products/ProductVideos.astro";
-import ProductCustomerPhotos from "../components/products/ProductCustomerPhotos.astro";
 import ProductStickyBar from "../components/products/ProductStickyBar.astro";
 import ProductFAQ from "../components/products/ProductFAQ.astro";
 import ProductReviews from "../components/products/ProductReviews.astro";
@@ -110,19 +107,10 @@ if (relatedProducts.length < 4) {
                 <ProductInfo product={product} />
             </div>
 
-            <!-- ===== 1. INSPIRE-SE (vídeos carrossel) ===== -->
-            <ProductVideos />
-
-            <!-- ===== 2. ARTE COM QUALIDADE (features) ===== -->
-            <ProductFeatures />
-
-            <!-- ===== 3. QUADROS QUE AMARAM (fotos UGC) ===== -->
-            <ProductCustomerPhotos />
-
-            <!-- ===== 4. REVIEWS ===== -->
+            <!-- ===== REVIEWS ===== -->
             <ProductReviews reviews={reviewsData} totalReviews={reviewsTotal} stats={reviewsStats} />
 
-            <!-- ===== 5. FAQ ===== -->
+            <!-- ===== FAQ ===== -->
             <ProductFAQ />
 
             <section class="mt-20 md:mt-32">
