@@ -77,7 +77,7 @@ const discountedPrice = product.price * (1 - (product.discount || 0) / 100);
             const product = JSON.parse(productInfo.getAttribute("data-product") || "{}");
             const result = addToCart(product, 1);
             if (result.success) {
-                toast.success(result.message);
+                // Sem toast (redundante com abertura do sidebar)
                 openCart();
             } else {
                 toast.error(result.message);

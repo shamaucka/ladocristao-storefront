@@ -12,9 +12,22 @@ import TrackingScripts from "../components/tracking/TrackingScripts.astro";
 <html lang="pt-BR" data-theme="light">
     <head>
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <title>Checkout | Lado Cristao</title>
+        <style>
+            /* Impede zoom automatico em inputs no iOS (font-size minimo 16px) */
+            #checkout-form input[type="text"],
+            #checkout-form input[type="email"],
+            #checkout-form input[type="tel"],
+            #checkout-form input[type="number"],
+            #checkout-form input[type="password"],
+            #checkout-form input[type="search"],
+            #checkout-form select,
+            #checkout-form textarea {
+                font-size: 16px !important;
+            }
+        </style>
         <TrackingScripts />
     </head>
     <body class="bg-slate-50 min-h-screen">
@@ -106,7 +119,7 @@ import TrackingScripts from "../components/tracking/TrackingScripts.astro";
 </style>
 
 <script>
-    import { cartItems, totalPrice, totalSavings, completePurchase, isPromoActive } from "../store/cartStore";
+    import { cartItems, totalPrice, totalSavings, completePurchase, isPromoActive, getEffectiveUnitPrice } from "../store/cartStore";
 
     function initCheckoutPage() {
     if (!document.getElementById("countdown-timer")) {
@@ -200,13 +213,11 @@ import TrackingScripts from "../components/tracking/TrackingScripts.astro";
             return;
         }
 
-        // Populate ticket
-        const PROMO_PRICE = 75;
-        const promo = isPromoActive(currentItems);
+        // Populate ticket (usa preco efetivo por categoria)
         if (ticketProducts) {
             ticketProducts.innerHTML = currentItems
                 .map((item) => {
-                    const unitPrice = promo ? PROMO_PRICE : item.price * (1 - (item.discount || 0) / 100);
+                    const unitPrice = getEffectiveUnitPrice(item, currentItems);
                     return `
                     <div class="flex justify-between items-center text-sm">
                         <div class="flex flex-col">

@@ -130,6 +130,7 @@ import { Icon } from "astro-icon/components";
         totalPrice,
         totalSavings,
         totalItems,
+        getEffectiveUnitPrice,
     } from "../../store/cartStore";
     import { toast } from "sonner";
     import { esc } from "../../lib/escapeHtml";
@@ -294,21 +295,24 @@ import { Icon } from "astro-icon/components";
         }
     });
 
-    // Atualiza precos individuais quando cart muda (promo via isPromoActive do store)
+    // Atualiza precos individuais quando cart muda (respeita promo por categoria)
     cartItems.subscribe((items) => {
-        const promoActive = items.reduce((s, i) => s + i.quantity, 0) >= 2;
-        const PROMO_EACH = 75;
-
         document.querySelectorAll(".cart-item-price").forEach((el) => {
+            const id = el.getAttribute("data-id") || "";
             const origPrice = parseFloat(el.getAttribute("data-original") || "0");
             const qty = parseInt(el.getAttribute("data-qty") || "1");
-            if (promoActive) {
+            const item = items.find((i) => i.id === id);
+            if (!item) return;
+            const effectiveUnit = getEffectiveUnitPrice(item, items);
+            const effectiveLine = effectiveUnit * qty;
+            const fullLine = origPrice * qty;
+            if (effectiveLine < fullLine - 0.01) {
                 el.innerHTML = `
-                    <p class="text-[9px] text-slate-300 line-through">${formatPrice(origPrice * qty)}</p>
-                    <p class="text-xs font-semibold text-slate-950">${formatPrice(PROMO_EACH * qty)}</p>
+                    <p class="text-[9px] text-slate-300 line-through">${formatPrice(fullLine)}</p>
+                    <p class="text-xs font-semibold text-slate-950">${formatPrice(effectiveLine)}</p>
                 `;
             } else {
-                el.innerHTML = `<p class="text-xs font-semibold text-slate-950">${formatPrice(origPrice * qty)}</p>`;
+                el.innerHTML = `<p class="text-xs font-semibold text-slate-950">${formatPrice(fullLine)}</p>`;
             }
         });
     });

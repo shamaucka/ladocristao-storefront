@@ -117,37 +117,106 @@ export function completePurchase() {
     return { success: true };
 }
 
-// Promoção: 2 ou mais quadros = R$75 cada (ao invés de R$97)
-const PROMO_MIN_ITEMS = 2;
-const PROMO_PRICE = 75;
+// Promoções por categoria
+// CAMISETAS: 1 = R$49,90 | 2 = R$99,80 (sem promo) | 3 = R$97,00 (promo) | 4+ = R$97 + (qtd-3) * R$49,90
+// QUADROS: 2 ou mais = R$75 cada
 
+function normalizeCategory(cat?: string): "camisetas" | "quadros" | "other" {
+    const c = (cat || "").toString().toLowerCase();
+    if (c.includes("camiseta")) return "camisetas";
+    if (c.includes("quadro")) return "quadros";
+    return "other";
+}
+
+// Calcula subtotal de um grupo de itens aplicando a promo da categoria
+function computeGroupSubtotal(groupItems: CartItem[]): { subtotal: number; savings: number } {
+    if (groupItems.length === 0) return { subtotal: 0, savings: 0 };
+    const category = normalizeCategory(groupItems[0].category);
+    const totalQty = groupItems.reduce((s, i) => s + i.quantity, 0);
+    // Preco "cheio" (sem promo, sem discount individual)
+    const fullPrice = groupItems.reduce((sum, it) => sum + it.price * it.quantity, 0);
+
+    // Aplica discount individual (field discount do item) em cima do fullPrice
+    const pricePostDiscount = groupItems.reduce((sum, it) => {
+        const p = it.price * (1 - (it.discount || 0) / 100);
+        return sum + p * it.quantity;
+    }, 0);
+
+    let finalSubtotal = pricePostDiscount;
+
+    if (category === "camisetas") {
+        // Cada bloco de 3 = R$97; resto cobra preço cheio R$49,90
+        const UNIT_PRICE = 49.90;
+        const PROMO_3_PRICE = 97.00;
+        const blocks = Math.floor(totalQty / 3);
+        const rest = totalQty - blocks * 3;
+        finalSubtotal = blocks * PROMO_3_PRICE + rest * UNIT_PRICE;
+    } else if (category === "quadros") {
+        // 2 ou mais = R$75 cada
+        const PROMO_PRICE_QUADRO = 75;
+        if (totalQty >= 2) {
+            finalSubtotal = totalQty * PROMO_PRICE_QUADRO;
+        }
+    }
+
+    const savings = Math.max(0, fullPrice - finalSubtotal);
+    return { subtotal: finalSubtotal, savings };
+}
+
+// Preço unitario efetivo para um item, considerando a promo da sua categoria
+// NaN-safe (qty = 0 retorna item.price). Nao aplica discount individual — ele fica por conta do caller se quiser.
+export function getEffectiveUnitPrice(item: CartItem, allItems: CartItem[]): number {
+    const category = normalizeCategory(item.category);
+    const sameGroup = allItems.filter(i => normalizeCategory(i.category) === category);
+    const totalQty = sameGroup.reduce((s, i) => s + i.quantity, 0);
+
+    if (category === "camisetas" && totalQty >= 3) {
+        const { subtotal } = computeGroupSubtotal(sameGroup);
+        // Preço medio do grupo nessa distribuicao — usado para exibir e para calc de linha
+        return totalQty > 0 ? subtotal / totalQty : item.price;
+    }
+    if (category === "quadros" && totalQty >= 2) {
+        return 75;
+    }
+    return item.price * (1 - (item.discount || 0) / 100);
+}
+
+// Ativa promo conforme regra da categoria
 export function isPromoActive(items: CartItem[]): boolean {
-    const totalQty = items.reduce((s, i) => s + i.quantity, 0);
-    return totalQty >= PROMO_MIN_ITEMS;
+    const camisetas = items.filter(i => normalizeCategory(i.category) === "camisetas")
+        .reduce((s, i) => s + i.quantity, 0);
+    const quadros = items.filter(i => normalizeCategory(i.category) === "quadros")
+        .reduce((s, i) => s + i.quantity, 0);
+    return camisetas >= 3 || quadros >= 2;
 }
 
 export const totalPrice = computed(cartItems, (items) => {
-    const totalQty = items.reduce((s, i) => s + i.quantity, 0);
-    const promo = totalQty >= PROMO_MIN_ITEMS;
-
-    return items.reduce((total, item) => {
-        const basePrice = promo ? PROMO_PRICE : item.price;
-        const itemPrice = basePrice * (1 - (item.discount || 0) / 100);
-        return total + itemPrice * item.quantity;
-    }, 0);
+    // Agrupa por categoria normalizada
+    const byCategory = new Map<string, CartItem[]>();
+    for (const it of items) {
+        const k = normalizeCategory(it.category);
+        if (!byCategory.has(k)) byCategory.set(k, []);
+        byCategory.get(k)!.push(it);
+    }
+    let total = 0;
+    byCategory.forEach((group) => {
+        total += computeGroupSubtotal(group).subtotal;
+    });
+    return total;
 });
 
 export const totalSavings = computed(cartItems, (items) => {
-    const totalQty = items.reduce((s, i) => s + i.quantity, 0);
-    const promo = totalQty >= PROMO_MIN_ITEMS;
-
-    return items.reduce((total, item) => {
-        // Economia da promoção (diferença entre preço original e promo)
-        const promoDiff = promo ? (item.price - PROMO_PRICE) * item.quantity : 0;
-        // Economia do desconto individual
-        const discountDiff = item.discount ? item.price * (item.discount / 100) * item.quantity : 0;
-        return total + promoDiff + discountDiff;
-    }, 0);
+    const byCategory = new Map<string, CartItem[]>();
+    for (const it of items) {
+        const k = normalizeCategory(it.category);
+        if (!byCategory.has(k)) byCategory.set(k, []);
+        byCategory.get(k)!.push(it);
+    }
+    let saved = 0;
+    byCategory.forEach((group) => {
+        saved += computeGroupSubtotal(group).savings;
+    });
+    return saved;
 });
 
 export const totalItems = computed(cartItems, (items) => {

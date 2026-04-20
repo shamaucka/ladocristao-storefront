@@ -377,7 +377,7 @@ const descLines = parseDescriptionLines(product.description);
                 : product;
             const result = addToCart(productToAdd, quantity);
             if (result.success) {
-                toast.success(result.message);
+                // Sem toast (redundante com abertura do sidebar)
                 openCart();
             } else {
                 toast.error(result.message);

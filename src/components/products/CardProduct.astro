@@ -85,7 +85,7 @@ const { title, price, images, stock, slug } = Astro.props;
                 );
                 const result = addToCart(product, 1);
                 if (result.success) {
-                    toast.success(result.message);
+                    // Sem toast (redundante com abertura do sidebar)
                     openCart();
                 } else {
                     toast.error(result.message);

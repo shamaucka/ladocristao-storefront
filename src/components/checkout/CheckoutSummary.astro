@@ -104,7 +104,7 @@ import { Icon } from "astro-icon/components";
 </style>
 
 <script>
-    import { cartItems, totalPrice, totalSavings, isPromoActive } from "../../store/cartStore";
+    import { cartItems, totalPrice, totalSavings, isPromoActive, getEffectiveUnitPrice } from "../../store/cartStore";
     import { esc } from "../../lib/escapeHtml";
 
     function initSummary() {
@@ -176,7 +176,6 @@ import { Icon } from "astro-icon/components";
     });
 
     // Cart items rendering
-    const PROMO_PRICE = 75;
     cartItems.subscribe((items) => {
         if (!itemsContainer) return;
 
@@ -188,15 +187,21 @@ import { Icon } from "astro-icon/components";
             return;
         }
 
-        const promo = isPromoActive(items);
+        // Detecta promo por categoria para mostrar badge
+        const camisetasQty = items.filter((i) => (i.category || "").toString().toLowerCase().includes("camiseta")).reduce((s, i) => s + i.quantity, 0);
+        const quadrosQty = items.filter((i) => (i.category || "").toString().toLowerCase().includes("quadro")).reduce((s, i) => s + i.quantity, 0);
 
         itemsContainer.innerHTML = items
             .map(
                 (item) => {
-                    const unitPrice = promo ? PROMO_PRICE : item.price * (1 - (item.discount || 0) / 100);
+                    const unitPrice = getEffectiveUnitPrice(item, items);
                     const lineTotal = unitPrice * item.quantity;
                     const originalTotal = item.price * item.quantity;
-                    const hasDiscount = promo && item.price > PROMO_PRICE;
+                    const hasDiscount = lineTotal < originalTotal - 0.01;
+                    const cat = (item.category || "").toString().toLowerCase();
+                    let promoLabel = "";
+                    if (cat.includes("camiseta") && camisetasQty >= 3) promoLabel = " · Promo 3 por R$97";
+                    else if (cat.includes("quadro") && quadrosQty >= 2) promoLabel = " · Promo 2 por R$150";
 
                     return `
             <div class="flex gap-3 group">
@@ -207,7 +212,7 @@ import { Icon } from "astro-icon/components";
                     <h4 class="text-xs font-black text-slate-950 uppercase italic truncate tracking-tight leading-tight">
                         ${esc(item.name)}
                     </h4>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Qtd: ${item.quantity}${promo ? ' · Promo 2 por R$150' : ''}</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Qtd: ${item.quantity}${promoLabel}</p>
                 </div>
                 <div class="text-right whitespace-nowrap">
                     ${hasDiscount ? `<span class="text-[10px] text-slate-300 line-through block">${formatPrice(originalTotal)}</span>` : ''}
