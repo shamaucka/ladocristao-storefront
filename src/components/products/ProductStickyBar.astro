@@ -29,15 +29,16 @@ const discountedPrice = product.price * (1 - (product.discount || 0) / 100);
                         R$ {product.price.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
                 )}
-                <span class="text-[9px] font-black bg-slate-950 text-white px-1.5 py-0.5 uppercase tracking-wide">
-                    2 por R$150
+                <span class="text-[9px] font-black text-white px-1.5 py-0.5 uppercase tracking-wide" style="background:#d63384">
+                    3 por R$97
                 </span>
             </div>
             <p class="text-[10px] font-black text-green-600 uppercase tracking-wider mt-0.5">Acaba logo!</p>
         </div>
         <button
             id="sticky-add-to-cart"
-            class="flex-shrink-0 bg-slate-950 text-white text-[11px] font-black uppercase tracking-widest px-5 py-3 active:scale-[0.97] transition-transform disabled:opacity-40"
+            class="flex-shrink-0 text-white text-[11px] font-black uppercase tracking-widest px-5 py-3 active:scale-[0.97] transition-transform disabled:opacity-40"
+            style="background:#d63384"
             disabled={product.stock <= 0}
         >
             {product.stock <= 0 ? "Esgotado" : "Comprar"}

@@ -90,22 +90,56 @@ function normalizeProduct(p: any) {
   // Otimiza URLs do Cloudinary (400px para cards, 800px para produto)
   const images = rawImages.map((url: string) => optimizeCloudinaryUrl(url, 400))
 
+  // Detecta categoria real
+  const rawCategory = (p.category_id || p.category || "").toString().toLowerCase()
+  let categoryLabel = "Quadros"
+  if (rawCategory.includes("camiseta")) categoryLabel = "Camisetas"
+  else if (rawCategory.includes("almofada")) categoryLabel = "Almofadas"
+  else if (rawCategory.includes("escultura")) categoryLabel = "Esculturas"
+
+  // Extrai variantes (tamanhos) quando existirem
+  const variants = Array.isArray(p.variants)
+    ? p.variants.map((v: any) => ({
+        id: v.id,
+        title: v.title || v.options?.tamanho || "Padrao",
+        sku: v.sku,
+        size: v.options?.tamanho || v.title,
+        price: v.prices?.[0]?.amount ? v.prices[0].amount / 100 : price,
+      }))
+    : []
+
+  // Specs específicos por categoria
+  let specs = p.specs
+  if (!specs) {
+    if (categoryLabel === "Camisetas") {
+      specs = [
+        { label: "Material", value: "Toque Algodao Anti-Pilling" },
+        { label: "Tamanhos", value: "P, M, G, GG" },
+        { label: "Caimento", value: "Feminino" },
+        { label: "Estampa", value: "Nao desbota" },
+      ]
+    } else {
+      specs = [
+        { label: "Tamanho", value: "60x90cm" },
+        { label: "Material", value: "Canvas Poliester Premium" },
+        { label: "Moldura", value: "Madeira Reflorestamento" },
+      ]
+    }
+  }
+
   return {
     id: p.id,
     name: p.title || p.name,
     title: p.title || p.name,
     price,
     description: p.description || "",
-    category: p.category_id || p.category || "Quadros",
+    category: categoryLabel,
     stock: p.stock ?? 50,
     images,
     slug: p.handle || p.slug,
     badge: p.badge,
     discount: p.discount,
-    specs: p.specs || [
-      { label: "Tamanho", value: "60x90cm" },
-      { label: "Material", value: "Canvas Poliester Premium" },
-      { label: "Moldura", value: "Madeira Reflorestamento" },
-    ],
+    variants,
+    specs,
   }
 }

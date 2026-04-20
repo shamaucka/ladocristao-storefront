@@ -20,7 +20,7 @@ import { Icon } from "astro-icon/components";
             <!-- Desktop Search -->
             <div class="hidden lg:flex flex-1 max-w-sm mx-8">
                 <form id="desktop-search-form" action="/quadros" method="get" class="w-full relative">
-                    <input type="text" name="q" id="desktop-search-input" placeholder="Pesquisar quadros..." class="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 focus:border-slate-800 focus:bg-white outline-none transition-all" autocomplete="off" />
+                    <input type="text" name="q" id="desktop-search-input" placeholder="Pesquisar camisetas..." class="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 focus:border-slate-800 focus:bg-white outline-none transition-all" autocomplete="off" />
                     <Icon name="lucide:search" class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 </form>
             </div>
@@ -28,7 +28,7 @@ import { Icon } from "astro-icon/components";
             <div class="flex items-center">
                 <button id="cart-button" class="relative w-10 h-10 flex items-center justify-center text-slate-700 hover:text-slate-900 transition-colors" aria-label="Carrinho">
                     <Icon name="lucide:shopping-bag" class="w-5 h-5" />
-                    <span id="nav-cart-count" class="hidden absolute -top-0.5 -right-0.5 bg-slate-900 text-white text-[9px] font-black w-4 h-4 items-center justify-center rounded-full flex">0</span>
+                    <span id="nav-cart-count" class="hidden absolute -top-0.5 -right-0.5 text-white text-[9px] font-black w-4 h-4 items-center justify-center rounded-full flex" style="background:#d63384">0</span>
                 </button>
             </div>
         </div>

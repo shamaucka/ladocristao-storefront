@@ -51,9 +51,10 @@ export async function getStaticPaths() {
 const { product, relatedProducts } = Astro.props;
 
 const categoryLabel = product.category && !product.category.includes("-") ? product.category : "Quadros";
+const categorySlug = categoryLabel.toLowerCase();
 const breadcrumbItems = [
     { label: "Inicio", href: "/" },
-    { label: categoryLabel, href: "/quadros" },
+    { label: categoryLabel, href: `/${categorySlug}` },
     { label: product.name },
 ];
 
