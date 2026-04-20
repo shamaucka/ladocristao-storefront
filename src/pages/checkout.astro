@@ -17,15 +17,30 @@ import TrackingScripts from "../components/tracking/TrackingScripts.astro";
         <title>Checkout | Lado Cristao</title>
         <style>
             /* Impede zoom automatico em inputs no iOS (font-size minimo 16px) */
-            #checkout-form input[type="text"],
-            #checkout-form input[type="email"],
-            #checkout-form input[type="tel"],
-            #checkout-form input[type="number"],
-            #checkout-form input[type="password"],
-            #checkout-form input[type="search"],
-            #checkout-form select,
-            #checkout-form textarea {
+            /* Aplica em TODOS inputs/selects/textareas da pagina de checkout, com prioridade maxima */
+            html body input,
+            html body input[type="text"],
+            html body input[type="email"],
+            html body input[type="tel"],
+            html body input[type="number"],
+            html body input[type="password"],
+            html body input[type="search"],
+            html body input[type="url"],
+            html body input[type="date"],
+            html body select,
+            html body textarea {
                 font-size: 16px !important;
+                -webkit-text-size-adjust: 100% !important;
+                text-size-adjust: 100% !important;
+            }
+            /* Reforco extra em telas pequenas (iPhone/iPad em modo vertical) */
+            @media screen and (max-width: 768px) {
+                html body input,
+                html body select,
+                html body textarea {
+                    font-size: 16px !important;
+                    touch-action: manipulation !important;
+                }
             }
         </style>
         <TrackingScripts />
