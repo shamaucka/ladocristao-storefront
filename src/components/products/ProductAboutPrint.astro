@@ -1,18 +1,19 @@
 ---
-// Seção "Sobre a Impressão" — accordion expansível
+// Seção "Sobre o Produto" — accordion expansível
 ---
 
 <section class="mt-16 border-t border-slate-100 pt-12">
     <details class="group" open>
         <summary class="flex items-center justify-between cursor-pointer list-none py-4 border-b border-slate-200 select-none">
             <div class="flex items-center gap-3">
-                <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">ⓘ</span>
-                <h2 class="text-sm font-black uppercase tracking-widest text-slate-800">Sobre a Impressão</h2>
+                <span class="text-[10px] font-black uppercase tracking-widest" style="color:#d63384">ⓘ</span>
+                <h2 class="text-sm font-black uppercase tracking-widest text-slate-800">Sobre o Produto</h2>
             </div>
             <svg
-                class="w-4 h-4 text-slate-400 transition-transform group-open:rotate-180"
+                class="w-4 h-4 transition-transform group-open:rotate-180"
                 fill="none" stroke="currentColor" stroke-width="2"
                 viewBox="0 0 24 24"
+                style="color:#d63384"
             >
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
             </svg>
@@ -21,26 +22,25 @@
         <div class="pt-8 pb-4 space-y-8">
             <!-- Intro -->
             <p class="text-slate-600 text-sm leading-relaxed max-w-3xl">
-                O canvas foi feito para durar. Cada detalhe da arte — de traços delicados a gradientes
-                suaves — é reproduzido com nitidez e profundidade em tecido de alta qualidade. É a
-                escolha ideal para ilustrações detalhadas, aquarelas, designs minimalistas e obras
-                com alto contraste, que ganham vida com as cores vivas do canvas. Com acabamento
-                aveludado e cor fiel ao original, combina com ambientes aconchegantes e interiores
-                mais ousados. Chegou pronto para pendurar — sem moldura, sem complicação.
+                Nossas camisetas sao feitas para durar e acompanhar voce no dia a dia com fe e estilo.
+                Tecido com toque de algodao, tratamento anti-pilling (nao faz bolinhas),
+                estampa de alta fixacao que nao desbota, modelagem feminina pensada para valorizar o corpo
+                e acabamento que vale cada centavo. Sao pecas que expressam sua fe sem abrir mao do conforto.
             </p>
 
             <!-- Feature grid -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
                 <div class="space-y-2">
-                    <h3 class="text-[11px] font-black uppercase tracking-wider text-slate-800">Canvas Premium de Alta Qualidade</h3>
+                    <h3 class="text-[11px] font-black uppercase tracking-wider text-slate-800">Tecido Premium Anti-Pilling</h3>
                     <ul class="space-y-1.5">
                         {[
-                            "Tecido canvas 100% poliéster de gramatura elevada para toque suave e resistência",
-                            "Acabamento aveludado que valoriza os detalhes e a saturação das cores",
-                            "Textura artística do canvas para um visual sofisticado",
+                            "Blend com toque de algodao que nao pinica e nao incomoda",
+                            "Tratamento anti-pilling — nunca faz bolinhas mesmo apos varias lavagens",
+                            "Tecido respiravel, otimo para o clima brasileiro",
+                            "Anti-odor: mantem frescor por mais tempo",
                         ].map((t) => (
                             <li class="flex items-start gap-2 text-[12px] text-slate-500 leading-snug">
-                                <span class="mt-1 w-1 h-1 rounded-full bg-slate-300 flex-shrink-0"></span>
+                                <span class="mt-1 w-1 h-1 rounded-full flex-shrink-0" style="background:#d63384"></span>
                                 {t}
                             </li>
                         ))}
@@ -48,14 +48,15 @@
                 </div>
 
                 <div class="space-y-2">
-                    <h3 class="text-[11px] font-black uppercase tracking-wider text-slate-800">Impressão de Alta Resolução</h3>
+                    <h3 class="text-[11px] font-black uppercase tracking-wider text-slate-800">Estampa que Nao Desbota</h3>
                     <ul class="space-y-1.5">
                         {[
-                            "Tintas pigmentadas de longa duração com cores vivas e resistência ao desbotamento",
-                            "Resolução máxima para fidelidade total à arte original",
+                            "Tintas pigmentadas de alta fixacao",
+                            "Resistente a lavagens e sol",
+                            "Estampa nao racha, nao solta, nao descasca",
                         ].map((t) => (
                             <li class="flex items-start gap-2 text-[12px] text-slate-500 leading-snug">
-                                <span class="mt-1 w-1 h-1 rounded-full bg-slate-300 flex-shrink-0"></span>
+                                <span class="mt-1 w-1 h-1 rounded-full flex-shrink-0" style="background:#d63384"></span>
                                 {t}
                             </li>
                         ))}
@@ -63,15 +64,15 @@
                 </div>
 
                 <div class="space-y-2">
-                    <h3 class="text-[11px] font-black uppercase tracking-wider text-slate-800">Bastidor de Madeira</h3>
+                    <h3 class="text-[11px] font-black uppercase tracking-wider text-slate-800">Modelagem Feminina</h3>
                     <ul class="space-y-1.5">
                         {[
-                            "Estrutura interna em madeira de primeira linha",
-                            "Tensão uniforme do canvas para acabamento plano e impecável",
-                            "Bordas laterais impressas — sem bordas brancas",
+                            "Caimento pensado para o corpo feminino brasileiro",
+                            "Tamanhos P, M, G e GG disponiveis",
+                            "Costuras reforcadas que nao abrem",
                         ].map((t) => (
                             <li class="flex items-start gap-2 text-[12px] text-slate-500 leading-snug">
-                                <span class="mt-1 w-1 h-1 rounded-full bg-slate-300 flex-shrink-0"></span>
+                                <span class="mt-1 w-1 h-1 rounded-full flex-shrink-0" style="background:#d63384"></span>
                                 {t}
                             </li>
                         ))}
@@ -79,14 +80,15 @@
                 </div>
 
                 <div class="space-y-2">
-                    <h3 class="text-[11px] font-black uppercase tracking-wider text-slate-800">Pronto para Pendurar</h3>
+                    <h3 class="text-[11px] font-black uppercase tracking-wider text-slate-800">Alta Duracao</h3>
                     <ul class="space-y-1.5">
                         {[
-                            "Dispositivo de fixação incluso — é só colocar na parede",
-                            "Bordas protegidas para integridade no transporte",
+                            "Tecido nao encolhe seguindo as instrucoes de lavagem",
+                            "Mantem forma, cor e maciez apos muitas lavagens",
+                            "Acabamento premium em cada peca",
                         ].map((t) => (
                             <li class="flex items-start gap-2 text-[12px] text-slate-500 leading-snug">
-                                <span class="mt-1 w-1 h-1 rounded-full bg-slate-300 flex-shrink-0"></span>
+                                <span class="mt-1 w-1 h-1 rounded-full flex-shrink-0" style="background:#d63384"></span>
                                 {t}
                             </li>
                         ))}
@@ -95,11 +97,11 @@
             </div>
 
             <!-- Care tip -->
-            <div class="border-l-2 border-slate-200 pl-4 py-1">
-                <p class="text-[11px] font-black uppercase tracking-wider text-slate-500 mb-1">Cuidados com a Arte</p>
+            <div class="border-l-2 pl-4 py-1" style="border-color:#d63384">
+                <p class="text-[11px] font-black uppercase tracking-wider mb-1" style="color:#d63384">Cuidados com a Peca</p>
                 <p class="text-[12px] text-slate-500 leading-snug">
-                    Mantenha em ambiente sem umidade excessiva, longe de luz solar direta,
-                    e limpe com pano seco quando necessário.
+                    Lave com agua fria, do avesso, em ciclo suave. Nao use alvejante. Seque na sombra.
+                    Com esses cuidados simples, sua camiseta mantem qualidade por muito tempo.
                 </p>
             </div>
         </div>

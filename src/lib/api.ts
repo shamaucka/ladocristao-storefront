@@ -58,18 +58,18 @@ export async function fetchBundles() {
   }
 }
 
-// Otimiza e reescreve URL de imagem para CDN próprio
-// Usa f_jpg em vez de f_auto porque o CDN Worker nao passa Accept header,
-// fazendo Cloudinary retornar JPEG XL (nao suportado em Chrome)
+// Otimiza URL do Cloudinary adicionando transforms (f_auto, q_auto, w_X)
+// Usa Cloudinary direto (CDN proprio ainda nao configurado para ladocristao)
 function optimizeCloudinaryUrl(url: string, width = 600) {
   if (!url) return url
-  const cdnUrl = url.replace(/^https?:\/\/res\.cloudinary\.com\/[^/]+\//, "https://cdn.ladocristao.com.br/")
-  if (!cdnUrl.includes("cdn.ladocristao.com.br")) return url
-  const transform = `f_jpg,q_auto,w_${width}`
-  if (/\/image\/upload\/[a-z]/.test(cdnUrl)) {
-    return cdnUrl.replace(/\/image\/upload\/[^/]+\//, `/image/upload/${transform}/`)
+  if (!url.includes("res.cloudinary.com") && !url.includes("cdn.ladocristao.com.br")) return url
+  const transform = `f_auto,q_auto,w_${width}`
+  // Se ja tem transforms no path, substitui
+  if (/\/image\/upload\/[a-z]_[^/]+\//.test(url)) {
+    return url.replace(/\/image\/upload\/[^/]+\//, `/image/upload/${transform}/`)
   }
-  return cdnUrl.replace("/image/upload/", `/image/upload/${transform}/`)
+  // Sem transforms: injeta apos /image/upload/
+  return url.replace("/image/upload/", `/image/upload/${transform}/`)
 }
 
 // Normaliza produto da API para o formato que o storefront espera
