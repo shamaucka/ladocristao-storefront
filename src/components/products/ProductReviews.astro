@@ -67,7 +67,7 @@ function timeAgo(dateStr: string): string {
                         <div class="flex items-start justify-between mb-2">
                             <div>
                                 <div class="text-slate-900 text-sm tracking-wider">{renderStars(review.rating)}</div>
-                                <h4 class="font-bold text-slate-900 mt-1">{review.title || "Otimo produto"}</h4>
+                                {review.title && <h4 class="font-bold text-slate-900 mt-1">{review.title}</h4>}
                             </div>
                             <span class="text-xs text-slate-400">{timeAgo(review.created_at)}</span>
                         </div>
@@ -112,7 +112,7 @@ function timeAgo(dateStr: string): string {
             <div class="flex items-start justify-between mb-2">
                 <div>
                     <div class="text-slate-900 text-sm tracking-wider">${renderStars(r.rating)}</div>
-                    <h4 class="font-bold text-slate-900 mt-1">${esc(r.title) || "Otimo produto"}</h4>
+                    ${r.title ? `<h4 class="font-bold text-slate-900 mt-1">${esc(r.title)}</h4>` : ""}
                 </div>
                 <span class="text-xs text-slate-400">${timeAgo(r.created_at)}</span>
             </div>
