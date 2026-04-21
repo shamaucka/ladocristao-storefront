@@ -349,7 +349,8 @@ const estados = [
                 <button
                     type="button"
                     id="btn-ppplus-pay"
-                    class="hidden w-full bg-slate-900 hover:bg-slate-800 text-white rounded-xl py-4 font-black uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    class="hidden w-full text-white rounded-xl py-4 font-black uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-2 cursor-pointer hover:brightness-90"
+                    style="background:#d63384"
                 >
                     <Icon name="lucide:lock" class="w-4 h-4" />
                     Finalizar Compra
@@ -459,9 +460,15 @@ const estados = [
             if (el) el.dispatchEvent(new Event("change", { bubbles: true }));
         });
 
-        // Força aplicação das máscaras antes da validação (evita bloqueio por autofill/paste sem mascara)
-        if (cpfInput) cpfInput.value = maskCPF(cpfInput.value);
-        if (phoneInput) phoneInput.value = maskPhone(phoneInput.value);
+        // Força aplicação AGRESSIVA das máscaras — aplica 2x para garantir
+        if (cpfInput) {
+            cpfInput.value = maskCPF(cpfInput.value);
+            cpfInput.value = maskCPF(cpfInput.value);
+        }
+        if (phoneInput) {
+            phoneInput.value = maskPhone(phoneInput.value);
+            phoneInput.value = maskPhone(phoneInput.value);
+        }
 
         if (validateStep1()) {
             step1ErrorBanner?.classList.add("hidden");
@@ -492,7 +499,10 @@ const estados = [
             const el = document.getElementById(id) as HTMLInputElement;
             if (el) el.dispatchEvent(new Event("change", { bubbles: true }));
         });
-        if (cepInput) cepInput.value = maskCEP(cepInput.value);
+        if (cepInput) {
+            cepInput.value = maskCEP(cepInput.value);
+            cepInput.value = maskCEP(cepInput.value);
+        }
         if (validateStep2()) {
             trackCheckoutStep("address");
             trackCheckoutStep("payment");
@@ -551,15 +561,49 @@ const estados = [
     const cardExpiryInput = document.getElementById("field-card-expiry") as HTMLInputElement;
     const cardCvvInput = document.getElementById("field-card-cvv") as HTMLInputElement;
 
-    // Helper: aplica mascara em todos os eventos relevantes (input/change/blur/paste)
+    // Helper: aplica mascara em TODOS eventos possiveis, preservando posicao do cursor
     function bindMask(el: HTMLInputElement | null, fn: (v: string) => string) {
         if (!el) return;
-        const apply = () => { el.value = fn(el.value); };
-        el.addEventListener("input", apply);
-        el.addEventListener("change", apply);
-        el.addEventListener("blur", apply);
+        const apply = (preserveCursor = false) => {
+            const prev = el.value;
+            const masked = fn(prev);
+            if (masked === prev) return;
+            // Preserva posicao do cursor contando digitos antes do cursor
+            let cursorPos = el.selectionStart ?? masked.length;
+            if (preserveCursor) {
+                const digitsBeforeCursor = (prev.substring(0, cursorPos).match(/\d/g) || []).length;
+                let digitsSeen = 0;
+                let newPos = masked.length;
+                for (let i = 0; i < masked.length; i++) {
+                    if (/\d/.test(masked[i])) digitsSeen++;
+                    if (digitsSeen >= digitsBeforeCursor) { newPos = i + 1; break; }
+                }
+                el.value = masked;
+                try { el.setSelectionRange(newPos, newPos); } catch {}
+            } else {
+                el.value = masked;
+            }
+        };
+
+        // Eventos de digitacao (preserva cursor)
+        el.addEventListener("input", () => apply(true));
+        el.addEventListener("keyup", () => apply(true));
+        // Eventos de submit/navegacao (nao precisa preservar cursor)
+        el.addEventListener("change", () => apply(false));
+        el.addEventListener("blur", () => apply(false));
+        el.addEventListener("focus", () => apply(false));
         // Paste: aguarda o valor ser inserido antes de aplicar
-        el.addEventListener("paste", () => setTimeout(apply, 0));
+        el.addEventListener("paste", () => setTimeout(() => apply(false), 0));
+        // Drop (arrastar valor para o input)
+        el.addEventListener("drop", () => setTimeout(() => apply(false), 0));
+
+        // Aplica na inicializacao (caso tenha valor pre-preenchido por autofill)
+        apply(false);
+
+        // MutationObserver para detectar autofill/set programatico (Safari/Chrome fill)
+        setTimeout(() => apply(false), 100);
+        setTimeout(() => apply(false), 500);
+        setTimeout(() => apply(false), 1500);
     }
 
     bindMask(cpfInput, maskCPF);
@@ -568,6 +612,23 @@ const estados = [
     bindMask(cardNumberInput, maskCardNumber);
     bindMask(cardExpiryInput, maskExpiry);
     bindMask(cardCvvInput, (v) => v.replace(/\D/g, ''));
+
+    // Hard-cap: garante que o input nao aceita mais que o maxlength de digitos
+    function hardLimit(el: HTMLInputElement | null, maxDigits: number) {
+        if (!el) return;
+        el.addEventListener("input", () => {
+            const digits = el.value.replace(/\D/g, '');
+            if (digits.length > maxDigits) {
+                el.value = el.value.slice(0, el.value.length - 1);
+            }
+        });
+    }
+    hardLimit(cpfInput, 11);
+    hardLimit(phoneInput, 11);
+    hardLimit(cepInput, 8);
+    hardLimit(cardNumberInput, 19);
+    hardLimit(cardExpiryInput, 4);
+    hardLimit(cardCvvInput, 4);
 
     // ── ViaCEP Auto-fill ──
     const cepLoading = document.getElementById("cep-loading");

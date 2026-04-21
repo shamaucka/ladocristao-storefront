@@ -168,7 +168,7 @@ const descLines = parseDescriptionLines(product.description);
 
     <!-- Size Selector (apenas para produtos com variantes) -->
     {hasVariants && (
-        <div class="space-y-3">
+        <div id="size-selector-wrapper" class="space-y-3 scroll-mt-24">
             <div class="flex items-center justify-between">
                 <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
                     Tamanho
@@ -176,22 +176,36 @@ const descLines = parseDescriptionLines(product.description);
                 <span id="selected-size-label" class="text-xs font-bold text-[#d63384] uppercase tracking-wider"></span>
             </div>
             <div id="size-selector" class="flex flex-wrap gap-3" role="radiogroup" aria-label="Selecionar tamanho">
-                {sortedVariants.map((v, idx) => (
+                {sortedVariants.map((v) => (
                     <button
                         type="button"
                         class="size-btn min-w-[56px] h-12 px-4 border-2 text-sm font-black uppercase tracking-wider transition-all cursor-pointer"
                         data-variant-id={v.id}
                         data-variant-size={v.size || v.title}
                         data-variant-sku={v.sku}
-                        data-selected={idx === 0 ? "true" : "false"}
-                        aria-pressed={idx === 0 ? "true" : "false"}
+                        data-selected="false"
+                        aria-pressed="false"
                     >
                         {v.size || v.title}
                     </button>
                 ))}
             </div>
+            <p id="size-error" class="hidden text-xs font-bold text-red-600 mt-2">
+                Selecione um tamanho antes de adicionar ao carrinho.
+            </p>
         </div>
     )}
+
+    <style is:global>
+        @keyframes size-shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-6px); }
+            40% { transform: translateX(6px); }
+            60% { transform: translateX(-4px); }
+            80% { transform: translateX(4px); }
+        }
+        .size-shaking { animation: size-shake 0.45s ease-in-out; }
+    </style>
 
     <!-- Purchase Actions -->
     <div class="space-y-6 pt-4">
@@ -324,6 +338,8 @@ const descLines = parseDescriptionLines(product.description);
         // Size selector
         const sizeBtns = document.querySelectorAll<HTMLButtonElement>(".size-btn");
         const sizeLabel = document.getElementById("selected-size-label");
+        const sizeWrapper = document.getElementById("size-selector-wrapper");
+        const sizeError = document.getElementById("size-error");
         let selectedVariant: { id: string; size: string; sku: string } | null = null;
 
         function applyBtnStyles(btn: HTMLButtonElement, selected: boolean) {
@@ -338,18 +354,31 @@ const descLines = parseDescriptionLines(product.description);
             }
         }
 
+        function showSizeError() {
+            if (sizeError) sizeError.classList.remove("hidden");
+            if (sizeWrapper) {
+                sizeWrapper.scrollIntoView({ behavior: "smooth", block: "center" });
+                // Shake todos os botoes de tamanho
+                sizeBtns.forEach((btn) => {
+                    btn.classList.remove("size-shaking");
+                    // Reflow para reiniciar a animacao
+                    void btn.offsetWidth;
+                    btn.classList.add("size-shaking");
+                });
+                setTimeout(() => {
+                    sizeBtns.forEach((btn) => btn.classList.remove("size-shaking"));
+                }, 500);
+            }
+        }
+
+        function hideSizeError() {
+            if (sizeError) sizeError.classList.add("hidden");
+        }
+
         if (sizeBtns.length > 0) {
+            // Nenhum tamanho pre-selecionado — forca a cliente a escolher
             sizeBtns.forEach((btn) => {
-                const isSel = btn.dataset.selected === "true";
-                applyBtnStyles(btn, isSel);
-                if (isSel) {
-                    selectedVariant = {
-                        id: btn.dataset.variantId || "",
-                        size: btn.dataset.variantSize || "",
-                        sku: btn.dataset.variantSku || "",
-                    };
-                    if (sizeLabel) sizeLabel.textContent = `Selecionado: ${selectedVariant.size}`;
-                }
+                applyBtnStyles(btn, false);
 
                 btn.addEventListener("click", () => {
                     sizeBtns.forEach((b) => {
@@ -366,12 +395,17 @@ const descLines = parseDescriptionLines(product.description);
                         sku: btn.dataset.variantSku || "",
                     };
                     if (sizeLabel) sizeLabel.textContent = `Selecionado: ${selectedVariant.size}`;
+                    hideSizeError();
                 });
             });
         }
 
         addToCartBtn?.addEventListener("click", () => {
-            // Enriquece produto com variante selecionada (SKU + tamanho)
+            // Se o produto tem variantes mas nenhum tamanho foi escolhido, bloqueia e mostra erro
+            if (sizeBtns.length > 0 && !selectedVariant) {
+                showSizeError();
+                return;
+            }
             const productToAdd = selectedVariant
                 ? { ...product, variantId: selectedVariant.id, variantSize: selectedVariant.size, sku: selectedVariant.sku, name: `${product.name} - Tamanho ${selectedVariant.size}` }
                 : product;
@@ -385,6 +419,10 @@ const descLines = parseDescriptionLines(product.description);
         });
 
         buyNowBtn?.addEventListener("click", () => {
+            if (sizeBtns.length > 0 && !selectedVariant) {
+                showSizeError();
+                return;
+            }
             const productToAdd = selectedVariant
                 ? { ...product, variantId: selectedVariant.id, variantSize: selectedVariant.size, sku: selectedVariant.sku, name: `${product.name} - Tamanho ${selectedVariant.size}` }
                 : product;
