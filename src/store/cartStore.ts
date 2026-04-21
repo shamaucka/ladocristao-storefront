@@ -145,12 +145,14 @@ function computeGroupSubtotal(groupItems: CartItem[]): { subtotal: number; savin
     let finalSubtotal = pricePostDiscount;
 
     if (category === "camisetas") {
-        // Cada bloco de 3 = R$97; resto cobra preço cheio R$49,90
+        // 1: R$49,90 | 2: R$99,80 (2x49,90) | 3+: R$32,33/un (97/3) sempre
         const UNIT_PRICE = 49.90;
-        const PROMO_3_PRICE = 97.00;
-        const blocks = Math.floor(totalQty / 3);
-        const rest = totalQty - blocks * 3;
-        finalSubtotal = blocks * PROMO_3_PRICE + rest * UNIT_PRICE;
+        const PROMO_UNIT = 97.00 / 3; // R$32,333...
+        if (totalQty >= 3) {
+            finalSubtotal = totalQty * PROMO_UNIT;
+        } else {
+            finalSubtotal = totalQty * UNIT_PRICE;
+        }
     } else if (category === "quadros") {
         // 2 ou mais = R$75 cada
         const PROMO_PRICE_QUADRO = 75;
@@ -171,9 +173,8 @@ export function getEffectiveUnitPrice(item: CartItem, allItems: CartItem[]): num
     const totalQty = sameGroup.reduce((s, i) => s + i.quantity, 0);
 
     if (category === "camisetas" && totalQty >= 3) {
-        const { subtotal } = computeGroupSubtotal(sameGroup);
-        // Preço medio do grupo nessa distribuicao — usado para exibir e para calc de linha
-        return totalQty > 0 ? subtotal / totalQty : item.price;
+        // A partir de 3: R$32,33/un (97/3) para qualquer quantidade
+        return 97 / 3;
     }
     if (category === "quadros" && totalQty >= 2) {
         return 75;
