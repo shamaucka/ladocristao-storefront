@@ -70,14 +70,20 @@ const discountedPrice = product.price * (1 - (product.discount || 0) / 100);
         );
         observer.observe(mainBtn);
 
-        // Adiciona direto ao carrinho (sem clicar no botão principal)
+        // Delega ao botao principal: garante mesma validacao de tamanho,
+        // scroll, shake e erro caso o cliente nao tenha selecionado tamanho.
         stickyBtn?.addEventListener("click", () => {
+            const realBtn = document.getElementById("add-to-cart-btn") as HTMLButtonElement | null;
+            if (realBtn) {
+                realBtn.click();
+                return;
+            }
+            // Fallback (caso o botao principal nao exista por algum motivo)
             const productInfo = document.querySelector(".product-info");
             if (!productInfo) return;
             const product = JSON.parse(productInfo.getAttribute("data-product") || "{}");
             const result = addToCart(product, 1);
             if (result.success) {
-                // Sem toast (redundante com abertura do sidebar)
                 openCart();
             } else {
                 toast.error(result.message);
