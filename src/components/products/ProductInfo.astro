@@ -94,18 +94,21 @@ const descLines = parseDescriptionLines(product.description);
                 {
                     product.discount && product.discount > 0 && (
                         <span class="text-sm font-bold text-slate-400 line-through decoration-red-500/50">
-                            R$ {product.price.toLocaleString("pt-BR")}
+                            R$ {product.price.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                     )
                 }
-                <span class="text-4xl font-black text-slate-900">
-                    R$ {
-                        discountedPrice.toLocaleString("pt-BR", {
-                            minimumFractionDigits: 0,
-                            maximumFractionDigits: 0,
-                        })
-                    }
-                </span>
+                {(() => {
+                    const intPart = Math.floor(discountedPrice);
+                    const centsPart = Math.round((discountedPrice - intPart) * 100);
+                    const centsStr = centsPart.toString().padStart(2, "0");
+                    return (
+                        <span class="font-black text-slate-900 leading-none flex items-baseline">
+                            <span class="text-4xl">R$ {intPart}</span>
+                            <span class="text-2xl ml-0.5">,{centsStr}</span>
+                        </span>
+                    );
+                })()}
                 <span class="text-[11px] font-bold text-slate-400 block mt-1">
                     6x de R$ {(discountedPrice / 6).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} s/ juros
                 </span>
