@@ -98,15 +98,22 @@ function normalizeProduct(p: any) {
   else if (rawCategory.includes("escultura")) categoryLabel = "Esculturas"
 
   // Extrai variantes (tamanhos) quando existirem
-  const variants = Array.isArray(p.variants)
-    ? p.variants.map((v: any) => ({
-        id: v.id,
-        title: v.title || v.options?.tamanho || "Padrao",
-        sku: v.sku,
-        size: v.options?.tamanho || v.title,
-        price: v.prices?.[0]?.amount ? v.prices[0].amount / 100 : price,
-      }))
-    : []
+  // Filtra variantes "Padrao" sem tamanho real — produtos com unica variante generica
+  // nao devem mostrar seletor (almofadas, esculturas, etc.)
+  const rawVariants = Array.isArray(p.variants) ? p.variants : []
+  const meaningfulVariants = rawVariants.filter((v: any) => {
+    const tam = v.options?.tamanho
+    const title = (v.title || "").toString().toLowerCase()
+    // So conta como variante valida se tem options.tamanho OU title nao e "padrao"
+    return !!tam || (title && title !== "padrao")
+  })
+  const variants = meaningfulVariants.map((v: any) => ({
+    id: v.id,
+    title: v.title || v.options?.tamanho || "Padrao",
+    sku: v.sku,
+    size: v.options?.tamanho || v.title,
+    price: v.prices?.[0]?.amount ? v.prices[0].amount / 100 : price,
+  }))
 
   // Specs específicos por categoria
   let specs = p.specs
@@ -117,6 +124,12 @@ function normalizeProduct(p: any) {
         { label: "Tamanhos", value: "P, M, G, GG" },
         { label: "Caimento", value: "Feminino" },
         { label: "Estampa", value: "Nao desbota" },
+      ]
+    } else if (categoryLabel === "Almofadas") {
+      specs = [
+        { label: "Tamanho", value: "45x45" },
+        { label: "Material", value: "Poliester Peletizado" },
+        { label: "Estampa", value: "Frente e Verso" },
       ]
     } else {
       specs = [
