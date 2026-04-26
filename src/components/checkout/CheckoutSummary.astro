@@ -189,6 +189,7 @@ import { Icon } from "astro-icon/components";
 
         // Detecta promo por categoria para mostrar badge
         const camisetasQty = items.filter((i) => (i.category || "").toString().toLowerCase().includes("camiseta")).reduce((s, i) => s + i.quantity, 0);
+        const almofadasQty = items.filter((i) => (i.category || "").toString().toLowerCase().includes("almofada")).reduce((s, i) => s + i.quantity, 0);
         const quadrosQty = items.filter((i) => (i.category || "").toString().toLowerCase().includes("quadro")).reduce((s, i) => s + i.quantity, 0);
 
         itemsContainer.innerHTML = items
@@ -201,6 +202,7 @@ import { Icon } from "astro-icon/components";
                     const cat = (item.category || "").toString().toLowerCase();
                     let promoLabel = "";
                     if (cat.includes("camiseta") && camisetasQty >= 3) promoLabel = " · Promo 3 por R$97";
+                    else if (cat.includes("almofada") && almofadasQty >= 3) promoLabel = " · Promo 3 por R$97";
                     else if (cat.includes("quadro") && quadrosQty >= 2) promoLabel = " · Promo 2 por R$150";
 
                     return `

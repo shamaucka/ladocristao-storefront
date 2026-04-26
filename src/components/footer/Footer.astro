@@ -23,10 +23,10 @@ import { Icon } from "astro-icon/components";
                 <h3 class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-6">Loja</h3>
                 <ul class="space-y-3">
                     {[
-                        { label: "Todas as Camisetas", href: "/camisetas" },
+                        { label: "Camisetas", href: "/camisetas" },
+                        { label: "Almofadas", href: "/almofadas" },
                         { label: "Mais Vendidas", href: "/camisetas?sort=mais-vendidos" },
                         { label: "Lançamentos", href: "/camisetas?sort=novidades" },
-                        { label: "Promoção", href: "/camisetas?sort=promocao" },
                         { label: "Minha Conta", href: "/minhaconta" },
                     ].map(l => (
                         <li><a href={l.href} class="text-sm text-slate-600 hover:text-[#d63384] transition-colors duration-200">{l.label}</a></li>

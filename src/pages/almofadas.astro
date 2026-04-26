@@ -1,0 +1,185 @@
+---
+import Layout from "../layouts/Layout.astro";
+import CardProduct from "../components/products/CardProduct.astro";
+import { fetchProducts } from "../lib/api";
+import { products as staticProducts } from "../data/products";
+import { Icon } from "astro-icon/components";
+
+const apiProducts = await fetchProducts(500);
+const allProducts = apiProducts || staticProducts;
+
+// Filtra apenas almofadas
+const products = allProducts.filter((p: any) => {
+    const cat = (p.category || "").toString().toLowerCase();
+    const slug = (p.slug || "").toString().toLowerCase();
+    return cat === "almofadas" || cat === "cat_almofadas" || slug.startsWith("almofada-");
+});
+
+const ITEMS_PER_PAGE = 48;
+const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
+---
+
+<Layout title="Almofadas Decorativas Cristas | Lado Cristao">
+    <!-- Banner Promocional -->
+    <div class="text-white" style="background: #232323;">
+        <div class="max-w-7xl mx-auto px-6 py-8 md:py-12 text-center">
+            <p class="text-xs md:text-sm uppercase tracking-[0.3em] text-white/60 mb-3">Oferta Especial</p>
+            <h2 class="text-3xl md:text-5xl font-black uppercase tracking-tight">
+                Compre 3 Almofadas por <span class="text-white">R$ 97</span>
+            </h2>
+            <p class="text-lg md:text-xl mt-2 font-light tracking-wide">
+                Frete Fixo R$ 19,90 para todo o Brasil
+            </p>
+            <p class="text-xs md:text-sm text-white/50 mt-4 uppercase tracking-widest">
+                Valido enquanto durarem os estoques
+            </p>
+        </div>
+    </div>
+
+    <div class="bg-white min-h-screen pb-20 pt-6">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+                <p id="product-count" class="text-slate-400 text-sm">
+                    {products.length} almofadas disponiveis
+                </p>
+                <div class="flex items-center gap-3">
+                    <label class="text-xs font-bold uppercase tracking-widest text-slate-400">Ordenar por</label>
+                    <select id="sort-select" class="select select-bordered select-sm rounded-lg bg-white border-slate-200 text-sm font-medium min-w-[180px]">
+                        <option value="mais-vendidos">Mais Vendidos</option>
+                        <option value="novidades">Lançamentos</option>
+                        <option value="promocao">Promoção</option>
+                        <option value="menor-preco">Menor Preço</option>
+                        <option value="maior-preco">Maior Preço</option>
+                        <option value="a-z">A - Z</option>
+                        <option value="z-a">Z - A</option>
+                    </select>
+                </div>
+            </div>
+
+            <main>
+                <div id="products-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
+                    {products.map((product, i) => (
+                        <div
+                            class="product-card"
+                            data-index={i}
+                            data-name={product.name}
+                            data-price={product.price}
+                            data-slug={product.slug}
+                            style={i >= ITEMS_PER_PAGE ? "display:none" : ""}
+                        >
+                            <CardProduct
+                                title={product.name}
+                                price={product.price}
+                                images={product.images}
+                                stock={product.stock}
+                                slug={product.slug}
+                            />
+                        </div>
+                    ))}
+                </div>
+
+                <div id="pagination" class="flex items-center justify-center gap-2 mt-12">
+                    <button id="prev-page" class="btn btn-sm btn-outline rounded-lg border-slate-200 hover:text-white hover:border-transparent disabled:opacity-30" disabled>
+                        <Icon name="lucide:chevron-left" class="w-4 h-4" />
+                    </button>
+                    <div id="page-numbers" class="flex items-center gap-1"></div>
+                    <button id="next-page" class="btn btn-sm btn-outline rounded-lg border-slate-200 hover:text-white hover:border-transparent">
+                        <Icon name="lucide:chevron-right" class="w-4 h-4" />
+                    </button>
+                </div>
+            </main>
+        </div>
+    </div>
+</Layout>
+
+<script define:vars={{ ITEMS_PER_PAGE, totalPages }}>
+    const urlSort = new URLSearchParams(window.location.search).get("sort");
+    const validSorts = ["mais-vendidos", "novidades", "promocao", "menor-preco", "maior-preco", "a-z", "z-a"];
+    let currentSort = validSorts.includes(urlSort) ? urlSort : "mais-vendidos";
+    let currentPage = 1;
+
+    const allCards = [...document.querySelectorAll(".product-card")];
+    const grid = document.getElementById("products-grid");
+    const pageNumbers = document.getElementById("page-numbers");
+    const prevBtn = document.getElementById("prev-page");
+    const nextBtn = document.getElementById("next-page");
+    const sortSelect = document.getElementById("sort-select");
+    const countEl = document.getElementById("product-count");
+
+    if (sortSelect) sortSelect.value = currentSort;
+
+    function extractAlmNum(slug) {
+        const match = (slug || "").match(/alm(\d+)/i);
+        return match ? parseInt(match[1]) : 0;
+    }
+
+    function getSortedIndices() {
+        const indices = allCards.map((card, i) => ({
+            i,
+            name: card.dataset.name || "",
+            price: parseFloat(card.dataset.price || "0"),
+            slug: card.dataset.slug || "",
+            almNum: extractAlmNum(card.dataset.slug || ""),
+        }));
+
+        switch (currentSort) {
+            case "menor-preco": indices.sort((a, b) => a.price - b.price); break;
+            case "maior-preco": indices.sort((a, b) => b.price - a.price); break;
+            case "novidades": indices.sort((a, b) => b.almNum - a.almNum); break;
+            case "a-z": indices.sort((a, b) => a.name.localeCompare(b.name)); break;
+            case "z-a": indices.sort((a, b) => b.name.localeCompare(a.name)); break;
+            case "promocao":
+            default: break;
+        }
+        return indices.map((item) => item.i);
+    }
+
+    function renderPage() {
+        const sorted = getSortedIndices();
+        const start = (currentPage - 1) * ITEMS_PER_PAGE;
+        const end = start + ITEMS_PER_PAGE;
+        const fragment = document.createDocumentFragment();
+        for (const idx of sorted) fragment.appendChild(allCards[idx]);
+        grid.appendChild(fragment);
+        allCards.forEach((card, i) => {
+            const sortedIndex = sorted.indexOf(i);
+            card.style.display = sortedIndex >= start && sortedIndex < end ? "" : "none";
+        });
+        renderPagination();
+        if (currentPage > 1) grid.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function renderPagination() {
+        const total = Math.ceil(allCards.length / ITEMS_PER_PAGE);
+        pageNumbers.innerHTML = "";
+        prevBtn.disabled = currentPage <= 1;
+        nextBtn.disabled = currentPage >= total;
+        let startPage = Math.max(1, currentPage - 3);
+        let endPage = Math.min(total, startPage + 6);
+        if (endPage - startPage < 6) startPage = Math.max(1, endPage - 6);
+        for (let p = startPage; p <= endPage; p++) {
+            const btn = document.createElement("button");
+            if (p === currentPage) {
+                btn.className = "btn btn-sm rounded-lg text-white min-w-[36px]";
+                btn.style.background = "#d63384";
+                btn.style.borderColor = "#d63384";
+            } else {
+                btn.className = "btn btn-sm btn-outline rounded-lg border-slate-200 hover:text-white min-w-[36px]";
+                btn.addEventListener("mouseenter", () => { btn.style.background = "#d63384"; btn.style.borderColor = "#d63384"; });
+                btn.addEventListener("mouseleave", () => { btn.style.background = ""; btn.style.borderColor = ""; });
+            }
+            btn.textContent = String(p);
+            btn.addEventListener("click", () => { currentPage = p; renderPage(); });
+            pageNumbers.appendChild(btn);
+        }
+        const start = (currentPage - 1) * ITEMS_PER_PAGE + 1;
+        const end = Math.min(currentPage * ITEMS_PER_PAGE, allCards.length);
+        countEl.textContent = `Mostrando ${start}-${end} de ${allCards.length} almofadas`;
+    }
+
+    prevBtn.addEventListener("click", () => { if (currentPage > 1) { currentPage--; renderPage(); } });
+    nextBtn.addEventListener("click", () => { const total = Math.ceil(allCards.length / ITEMS_PER_PAGE); if (currentPage < total) { currentPage++; renderPage(); } });
+    sortSelect.addEventListener("change", (e) => { currentSort = e.target.value; currentPage = 1; renderPage(); });
+
+    renderPage();
+</script>
